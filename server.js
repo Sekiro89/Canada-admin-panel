@@ -145,12 +145,16 @@ async function load() {
 
 const page = fs.readFileSync(path.join(__dirname, 'index.html'));
 const PUBLIC = path.join(__dirname, 'public');
-const TYPES = { '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.svg': 'image/svg+xml' };
+const TYPES = { '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.svg': 'image/svg+xml',
+  '.woff2': 'font/woff2', '.html': 'text/html; charset=utf-8' };
 
-// Static files: /app.css, /app.js and the vendored design system under /kds/. Resolved inside
-// public/ only; anything that escapes it, or has another extension, is a 404.
+// Static files: /app.css, /app.js, /shared/, /fonts/, the vendored design system under /kds/ and
+// design previews under /v/<name>/ (a trailing slash serves that folder's index.html). Resolved
+// inside public/ only; anything that escapes it, or has another extension, is a 404.
 function serveStatic(req, res, headers) {
-  const rel = decodeURIComponent(req.url.split('?')[0]);
+  let rel;
+  try { rel = decodeURIComponent(req.url.split('?')[0]); } catch { return false; }
+  if (rel.endsWith('/')) rel += 'index.html';
   const file = path.join(PUBLIC, rel);
   const type = TYPES[path.extname(file)];
   if (!type || !file.startsWith(PUBLIC + path.sep) || !fs.existsSync(file) || !fs.statSync(file).isFile()) return false;
