@@ -1,0 +1,127 @@
+<!doctype html>
+<!-- Direction A — Swiss monochrome: white canvas, near-black Geist, one navy accent, hairline grid. -->
+<html lang="en-CA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#f7f8f9">
+<title>Ads dashboard</title>
+<link rel="preload" href="/fonts/geist-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/fonts/fonts.css">
+<link rel="stylesheet" href="app.css">
+<script type="module" src="app.js"></script>
+</head>
+<body>
+<header class="bar">
+  <div class="wrap bar__in">
+    <div class="bar__id">
+      <h1 class="bar__title">Ads dashboard</h1>
+      <p class="bar__stamp" id="stamp" aria-live="polite">Loading…</p>
+    </div>
+    <button type="button" class="btn" id="refresh" aria-describedby="stamp">
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.34 5.66"/><path d="M20 4v7h-7"/></svg>
+      <span class="btn__label">Refresh</span>
+    </button>
+  </div>
+  <nav class="wrap tabs" role="tablist" aria-label="Views">
+    <button type="button" role="tab" class="tab" id="tab-overview" aria-controls="panel-overview" data-view="overview">Overview</button>
+    <button type="button" role="tab" class="tab" id="tab-people" aria-controls="panel-people" data-view="people">People <span class="tab__n" id="nPeople"></span></button>
+    <button type="button" role="tab" class="tab" id="tab-ads" aria-controls="panel-ads" data-view="ads">Ads <span class="tab__n" id="nAds"></span></button>
+  </nav>
+</header>
+
+<main class="wrap">
+  <div id="fatal"></div>
+
+  <!-- ============================================================ overview -->
+  <section role="tabpanel" id="panel-overview" aria-labelledby="tab-overview" class="view" tabindex="-1">
+    <p class="lede" id="lede"><span class="sk sk--line"></span><span class="sk sk--line sk--short"></span></p>
+    <dl class="facts" id="facts">
+      <div><dt><span class="sk sk--word"></span></dt><dd><span class="sk sk--word"></span></dd></div>
+      <div><dt><span class="sk sk--word"></span></dt><dd><span class="sk sk--word"></span></dd></div>
+      <div><dt><span class="sk sk--word"></span></dt><dd><span class="sk sk--word"></span></dd></div>
+      <div><dt><span class="sk sk--word"></span></dt><dd><span class="sk sk--word"></span></dd></div>
+    </dl>
+    <div class="notices" id="alerts"></div>
+
+    <div class="grid">
+      <section class="block block--wide" aria-labelledby="h-compare">
+        <h2 id="h-compare">By portal</h2>
+        <div class="scroll"><table class="t t--compare" id="compare"><tbody><tr><td><span class="sk sk--block"></span></td></tr></tbody></table></div>
+      </section>
+      <div class="block block--side">
+        <section aria-labelledby="h-month">
+          <h2 id="h-month">Card money by month</h2>
+          <table class="t t--month" id="monthly"><tbody><tr><td><span class="sk sk--line"></span></td></tr></tbody></table>
+        </section>
+        <section aria-labelledby="h-imported" class="later">
+          <h2 id="h-imported">Imported &amp; test data</h2>
+          <p class="note">The import scripts wrote payment records so imported ads show as paid in admin. No money was collected for them.</p>
+          <dl class="kv" id="imported"></dl>
+        </section>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ people -->
+  <section role="tabpanel" id="panel-people" aria-labelledby="tab-people" class="view" tabindex="-1" hidden>
+    <form class="tools" id="pForm" role="search" onsubmit="return false">
+      <label class="field field--q"><span class="field__l">Search</span>
+        <input type="search" id="pq" placeholder="Email or name" autocomplete="off" spellcheck="false"></label>
+      <label class="field"><span class="field__l">Kind</span>
+        <select id="pKind">
+          <option value="real">Real people</option>
+          <option value="">Everyone</option>
+          <option value="test">Test</option>
+          <option value="staff">Staff</option>
+          <option value="import">Import</option>
+        </select></label>
+      <label class="field"><span class="field__l">Portal</span>
+        <select id="pPortal" data-portals><option value="">All portals</option></select></label>
+      <label class="field"><span class="field__l">Role</span>
+        <select id="pRole">
+          <option value="">All roles</option>
+          <option value="employer">Employer</option>
+          <option value="consultant">Consultant</option>
+          <option value="seeker">Job seeker</option>
+          <option value="admin">Admin</option>
+        </select></label>
+    </form>
+    <p class="summary" id="pSummary" aria-live="polite"></p>
+    <div class="list" id="pList"></div>
+  </section>
+
+  <!-- ============================================================ ads -->
+  <section role="tabpanel" id="panel-ads" aria-labelledby="tab-ads" class="view" tabindex="-1" hidden>
+    <form class="tools" id="aForm" role="search" onsubmit="return false">
+      <label class="field field--q"><span class="field__l">Search</span>
+        <input type="search" id="aq" placeholder="Title, employer, city, email, ID" autocomplete="off" spellcheck="false"></label>
+      <label class="field"><span class="field__l">Origin</span>
+        <select id="aOrigin">
+          <option value="real">Posted by real people</option>
+          <option value="">All</option>
+          <option value="imported">Imported (BRC list)</option>
+          <option value="jobbank">Job Bank</option>
+          <option value="test">Test / demo</option>
+        </select></label>
+      <label class="field"><span class="field__l">Portal</span>
+        <select id="aPortal" data-portals><option value="">All portals</option></select></label>
+      <label class="field"><span class="field__l">Status</span>
+        <select id="aStatus"><option value="">Any status</option></select></label>
+      <label class="field"><span class="field__l">Sort</span>
+        <select id="aSort">
+          <option value="published_at">Newest</option>
+          <option value="stripe_cents">Most paid</option>
+          <option value="views">Most views</option>
+          <option value="applications">Most applications</option>
+          <option value="expires_at">Expiring soonest</option>
+        </select></label>
+    </form>
+    <p class="summary" id="aSummary" aria-live="polite"></p>
+    <div class="list" id="aList"></div>
+    <button type="button" class="btn btn--more" id="more" hidden></button>
+  </section>
+</main>
+</body>
+</html>
