@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Ads Dashboard</title>
+<style>
+  :root { --bg:#f6f7f9; --card:#fff; --text:#1c2230; --muted:#667085; --line:#e4e7ec; --accent:#2457d6; --good:#12805c; --warn:#b54708; --bad:#b42318; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  header { background:var(--card); border-bottom:1px solid var(--line); padding:12px 16px; position:sticky; top:0; z-index:5; }
+  header h1 { font-size:17px; margin:0 0 8px; }
+  .tabs { display:flex; gap:6px; }
+  .tabs button { flex:1; max-width:160px; padding:8px; border:1px solid var(--line); background:#fff; border-radius:8px; font:inherit; cursor:pointer; }
+  .tabs button.on { background:var(--accent); color:#fff; border-color:var(--accent); }
+  main { padding:16px; max-width:1440px; margin:0 auto; }
+  .muted { color:var(--muted); font-size:13px; }
+  h2 { font-size:16px; margin:22px 0 10px; }
+  .grid { display:grid; gap:10px; grid-template-columns:repeat(auto-fill, minmax(150px,1fr)); }
+  .stat { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:12px; }
+  .stat b { display:block; font-size:22px; font-variant-numeric:tabular-nums; }
+  .stat span { color:var(--muted); font-size:13px; }
+  .portals { display:grid; gap:12px; grid-template-columns:repeat(auto-fill, minmax(300px,1fr)); }
+  .portal { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px; }
+  .portal h3 { margin:0; font-size:16px; }
+  .portal .err { color:var(--bad); }
+  dl { display:grid; grid-template-columns:1fr auto; gap:4px 12px; margin:10px 0 0; }
+  dt { color:var(--muted); } dd { margin:0; text-align:right; font-variant-numeric:tabular-nums; }
+  .box { background:var(--card); border:1px solid var(--line); border-radius:10px; overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; }
+  th, td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); white-space:nowrap; }
+  th { font-size:12px; text-transform:uppercase; letter-spacing:.03em; color:var(--muted); background:#fafbfc; }
+  th[data-k] { cursor:pointer; user-select:none; }
+  td.n, th.n { text-align:right; font-variant-numeric:tabular-nums; }
+  td.t { white-space:normal; min-width:220px; }
+  a { color:var(--accent); text-decoration:none; }
+  .pill { display:inline-block; align-self:flex-start; white-space:nowrap; padding:1px 8px; border-radius:99px; font-size:12px; background:#eef1f5; }
+  .pill.active { background:#e3f4ec; color:var(--good); } .pill.expired { background:#fdf0e6; color:var(--warn); }
+  .pill.cancelled { background:#fdecea; color:var(--bad); }
+  .filters { display:grid; gap:8px; grid-template-columns:repeat(auto-fill, minmax(160px,1fr)); margin-bottom:10px; }
+  .filters input, .filters select { width:100%; padding:9px; border:1px solid var(--line); border-radius:8px; font:inherit; background:#fff; }
+  .summary { margin:8px 0 10px; }
+  .cards { display:none; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:12px; margin-bottom:8px; }
+  .card .top { display:flex; justify-content:space-between; gap:8px; }
+  .card .title { font-weight:600; }
+  .card .meta { color:var(--muted); font-size:13px; margin-top:2px; }
+  .card .row { display:flex; justify-content:space-between; margin-top:8px; font-size:14px; }
+  .more { display:block; width:100%; padding:10px; margin-top:6px; border:1px solid var(--line); border-radius:8px; background:#fff; font:inherit; }
+  @media (max-width: 720px) {
+    #adsTable { display:none; } .cards { display:block; }
+    .stat b { font-size:19px; }
+    #monthly th, #monthly td, #employers th, #employers td { padding:8px 6px; font-size:13px; }
+    #employers td:first-child { white-space:normal; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Ads Dashboard <span class="muted" id="stamp"></span></h1>
+  <div class="tabs"><button data-view="overview" class="on">Overview</button><button data-view="ads">All ads</button></div>
+</header>
+<main>
+  <section id="overview">
+    <div class="grid" id="totals"></div>
+    <p class="muted">"Paid" means real money: Stripe payments plus payments imported from the old system. Sandbox payments are simulated tests and are shown separately. Job Bank ads are free imports, not employer-paid.</p>
+    <h2>By portal</h2>
+    <div class="portals" id="portals"></div>
+    <h2>Revenue by month (paid, CAD incl. tax)</h2>
+    <div class="box"><table id="monthly"></table></div>
+    <h2>Top employers by amount paid</h2>
+    <div class="box"><table id="employers"></table></div>
+  </section>
+
+  <section id="ads" hidden>
+    <div class="filters">
+      <input id="q" type="search" placeholder="Search title, employer, city">
+      <select id="fPortal"><option value="">All portals</option></select>
+      <select id="fStatus"><option value="">All statuses</option></select>
+      <select id="fSource"><option value="">All sources</option><option value="direct">Posted by employer</option><option value="jobbank">Job Bank import</option></select>
+      <select id="fPaid"><option value="">Paid or not</option><option value="real">Paid (real)</option><option value="sandbox">Sandbox only</option><option value="none">Nothing paid</option></select>
+      <select id="fSort">
+        <option value="published_at">Newest first</option><option value="real_cents">Most paid</option>
+        <option value="views">Most views</option><option value="expires_at">Expiring soonest</option>
+      </select>
+    </div>
+    <div class="summary muted" id="summary"></div>
+    <div class="box" id="adsTable"><table>
+      <thead><tr>
+        <th data-k="portal">Portal</th><th data-k="title">Ad</th><th data-k="employer">Employer</th><th data-k="status">Status</th>
+        <th data-k="source">Source</th><th class="n" data-k="real_cents">Paid</th><th class="n" data-k="sandbox_cents">Sandbox</th>
+        <th class="n" data-k="payments">Pmts</th><th data-k="published_at">Published</th><th data-k="expires_at">Expires</th><th class="n" data-k="views">Views</th>
+      </tr></thead><tbody id="adsBody"></tbody></table></div>
+    <div class="cards" id="adsCards"></div>
+    <button class="more" id="more" hidden>Show more</button>
+  </section>
+</main>
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money = c => '$' + (Number(c || 0) / 100).toLocaleString('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const num = n => Number(n || 0).toLocaleString('en-CA');
+const day = d => d ? new Date(d).toISOString().slice(0, 10) : '—';   // UTC calendar date
+const DAY = 864e5;
+let ADS = [], PORTALS = [], shown = 100, sortKey = 'published_at', sortDir = -1;
+
+document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('.tabs button').forEach(x => x.classList.toggle('on', x === b));
+  $('#overview').hidden = b.dataset.view !== 'overview';
+  $('#ads').hidden = b.dataset.view !== 'ads';
+});
+
+function statsFor(ads) {
+  const now = Date.now();
+  const s = { total: ads.length, active: 0, expired: 0, other: 0, direct: 0, jobbank: 0, paidAds: 0, real: 0, sandbox: 0,
+              payments: 0, views: 0, expSoon: 0, new30: 0, renewing: 0 };
+  for (const a of ads) {
+    if (a.status === 'active') s.active++; else if (a.status === 'expired') s.expired++; else s.other++;
+    if (a.source === 'jobbank') s.jobbank++; else s.direct++;
+    if (a.real_cents > 0) s.paidAds++;
+    s.real += +a.real_cents; s.sandbox += +a.sandbox_cents; s.payments += a.payments; s.views += a.views || 0;
+    if (a.status === 'active' && a.expires_at && new Date(a.expires_at) - now < 7 * DAY && new Date(a.expires_at) > now) s.expSoon++;
+    if (a.published_at && now - new Date(a.published_at) < 30 * DAY) s.new30++;
+    if (a.sub_status === 'active' && !a.cancel_at_period_end) s.renewing++;
+  }
+  return s;
+}
+
+function renderOverview() {
+  const t = statsFor(ADS);
+  $('#totals').innerHTML = [
+    [num(t.total), 'Total ads'], [num(t.active), 'Active now'], [money(t.real), 'Paid (real)'], [num(t.paidAds), 'Ads with real payment'],
+    [money(t.paidAds ? t.real / t.paidAds : 0), 'Avg paid per ad'], [money(t.sandbox), 'Sandbox (test)'],
+    [num(t.new30), 'Published in last 30 days'], [num(t.expSoon), 'Active, expiring ≤7 days'],
+  ].map(([v, l]) => `<div class="stat"><b>${v}</b><span>${l}</span></div>`).join('');
+
+  $('#portals').innerHTML = PORTALS.map(p => {
+    const s = statsFor(ADS.filter(a => a.portal === p.name));
+    return `<div class="portal"><h3>${esc(p.name)}</h3><a class="muted" href="https://${esc(p.domain)}" target="_blank" rel="noopener">${esc(p.domain)}</a>
+      ${p.error ? `<p class="err">${esc(p.error)}</p>` : ''}
+      <dl>
+        <dt>Total ads</dt><dd><b>${num(s.total)}</b></dd>
+        <dt>Active</dt><dd>${num(s.active)}</dd>
+        <dt>Expired</dt><dd>${num(s.expired)}</dd>
+        <dt>Draft / pending / cancelled</dt><dd>${num(s.other)}</dd>
+        <dt>Posted by employers</dt><dd>${num(s.direct)}</dd>
+        <dt>Job Bank imports</dt><dd>${num(s.jobbank)}</dd>
+        <dt>Ads with real payment</dt><dd>${num(s.paidAds)}</dd>
+        <dt>Paid (real)</dt><dd><b>${money(s.real)}</b></dd>
+        <dt>Sandbox (test)</dt><dd>${money(s.sandbox)}</dd>
+        <dt>Subscriptions set to renew</dt><dd>${num(s.renewing)}</dd>
+        <dt>Expiring ≤7 days</dt><dd>${num(s.expSoon)}</dd>
+        <dt>Total views</dt><dd>${num(s.views)}</dd>
+      </dl></div>`;
+  }).join('');
+
+  const months = {};
+  for (const p of PORTALS) for (const m of p.monthly) {
+    months[m.month] ??= {};
+    months[m.month][p.name] = m;
+  }
+  const keys = Object.keys(months).sort().reverse();
+  $('#monthly').innerHTML = `<thead><tr><th>Month</th>${PORTALS.map(p => `<th class="n">${esc(p.name)}</th>`).join('')}<th class="n">Total</th><th class="n">Sandbox</th></tr></thead><tbody>` +
+    (keys.map(k => {
+      let tot = 0, sb = 0;
+      const cells = PORTALS.map(p => { const m = months[k][p.name]; tot += +(m?.real_cents || 0); sb += +(m?.sandbox_cents || 0); return `<td class="n">${m?.real_cents ? money(m.real_cents) : '—'}</td>`; }).join('');
+      return `<tr><td>${k}</td>${cells}<td class="n"><b>${money(tot)}</b></td><td class="n muted">${money(sb)}</td></tr>`;
+    }).join('') || '<tr><td colspan="9" class="muted">No payments yet</td></tr>') + '</tbody>';
+
+  const emp = {};
+  for (const a of ADS) if (a.real_cents > 0) {
+    const k = a.portal + '|' + (a.employer || 'Unknown');
+    emp[k] ??= { portal: a.portal, name: a.employer || 'Unknown', cents: 0, ads: 0 };
+    emp[k].cents += +a.real_cents; emp[k].ads++;
+  }
+  const top = Object.values(emp).sort((a, b) => b.cents - a.cents).slice(0, 15);
+  $('#employers').innerHTML = `<thead><tr><th>Employer</th><th>Portal</th><th class="n">Ads</th><th class="n">Paid</th></tr></thead><tbody>` +
+    (top.map(e => `<tr><td>${esc(e.name)}</td><td>${esc(e.portal)}</td><td class="n">${e.ads}</td><td class="n">${money(e.cents)}</td></tr>`).join('') ||
+      '<tr><td colspan="4" class="muted">No real payments yet</td></tr>') + '</tbody>';
+}
+
+function filtered() {
+  const q = $('#q').value.trim().toLowerCase(), fp = $('#fPortal').value, fs = $('#fStatus').value, fsrc = $('#fSource').value, fpaid = $('#fPaid').value;
+  const list = ADS.filter(a =>
+    (!fp || a.portal === fp) && (!fs || a.status === fs) &&
+    (!fsrc || (fsrc === 'jobbank' ? a.source === 'jobbank' : a.source !== 'jobbank')) &&
+    (!fpaid || (fpaid === 'real' ? a.real_cents > 0 : fpaid === 'sandbox' ? a.real_cents == 0 && a.sandbox_cents > 0 : a.real_cents == 0 && a.sandbox_cents == 0)) &&
+    (!q || [a.title, a.employer, a.city, a.province, a.public_id].join(' ').toLowerCase().includes(q)));
+  const k = sortKey, d = sortDir;
+  const val = a => ['real_cents', 'sandbox_cents', 'views', 'payments'].includes(k) ? Number(a[k] || 0)
+    : k.endsWith('_at') ? (a[k] ? new Date(a[k]).getTime() : (d > 0 ? Infinity : -Infinity)) : String(a[k] || '').toLowerCase();
+  return list.sort((a, b) => (val(a) > val(b) ? 1 : val(a) < val(b) ? -1 : 0) * d);
+}
+
+function link(a) {
+  const p = PORTALS.find(x => x.name === a.portal);
+  return a.status === 'active' && a.slug ? `<a href="https://${esc(p.domain)}/jobs/${esc(a.slug)}" target="_blank" rel="noopener">${esc(a.title)}</a>` : esc(a.title);
+}
+
+function renderAds() {
+  const list = filtered(), page = list.slice(0, shown);
+  const s = statsFor(list);
+  $('#summary').textContent = `${num(list.length)} ads · ${num(s.active)} active · ${money(s.real)} paid · ${money(s.sandbox)} sandbox`;
+  $('#adsBody').innerHTML = page.map(a => `<tr>
+    <td>${esc(a.portal)}</td><td class="t">${link(a)}<div class="muted">${esc(a.public_id || '#' + a.id)} · ${esc([a.city, a.province].filter(Boolean).join(', '))}</div></td>
+    <td>${esc(a.employer || '—')}</td><td><span class="pill ${esc(a.status)}">${esc(a.status)}</span></td>
+    <td>${a.source === 'jobbank' ? 'Job Bank' : 'Employer'}</td>
+    <td class="n">${a.real_cents > 0 ? money(a.real_cents) : '—'}</td><td class="n muted">${a.sandbox_cents > 0 ? money(a.sandbox_cents) : '—'}</td>
+    <td class="n">${a.payments || '—'}</td><td>${day(a.published_at)}</td><td>${day(a.expires_at)}</td><td class="n">${num(a.views)}</td></tr>`).join('') ||
+    '<tr><td colspan="11" class="muted">No ads match</td></tr>';
+  $('#adsCards').innerHTML = page.map(a => `<div class="card">
+    <div class="top"><div><div class="title">${link(a)}</div><div class="meta">${esc(a.employer || '—')} · ${esc([a.city, a.province].filter(Boolean).join(', '))}</div></div>
+      <span class="pill ${esc(a.status)}">${esc(a.status)}</span></div>
+    <div class="row"><span class="muted">${esc(a.portal)} · ${a.source === 'jobbank' ? 'Job Bank' : 'Employer'}</span><b>${a.real_cents > 0 ? money(a.real_cents) : a.sandbox_cents > 0 ? '<span class="muted">' + money(a.sandbox_cents) + ' test</span>' : '<span class="muted">unpaid</span>'}</b></div>
+    <div class="row muted"><span>Published ${day(a.published_at)}</span><span>Expires ${day(a.expires_at)}</span><span>${num(a.views)} views</span></div>
+  </div>`).join('') || '<p class="muted">No ads match</p>';
+  $('#more').hidden = list.length <= shown;
+}
+
+$('#more').onclick = () => { shown += 100; renderAds(); };
+['#q', '#fPortal', '#fStatus', '#fSource', '#fPaid'].forEach(id => $(id).addEventListener('input', () => { shown = 100; renderAds(); }));
+$('#fSort').onchange = e => { sortKey = e.target.value; sortDir = sortKey === 'expires_at' ? 1 : -1; shown = 100; renderAds(); };
+document.querySelectorAll('th[data-k]').forEach(th => th.onclick = () => {
+  sortDir = sortKey === th.dataset.k ? -sortDir : -1; sortKey = th.dataset.k; renderAds();
+});
+
+fetch('/api/data').then(r => r.json()).then(d => {
+  PORTALS = d.portals;
+  ADS = d.portals.flatMap(p => p.ads.map(a => ({ ...a, portal: p.name })));
+  $('#stamp').textContent = '· as of ' + new Date(d.generated_at).toLocaleString();
+  $('#fPortal').innerHTML += PORTALS.map(p => `<option>${esc(p.name)}</option>`).join('');
+  $('#fStatus').innerHTML += [...new Set(ADS.map(a => a.status))].sort().map(s => `<option>${esc(s)}</option>`).join('');
+  renderOverview(); renderAds();
+}).catch(() => { $('#totals').innerHTML = '<p class="muted">Could not load data.</p>'; });
+</script>
+</body>
+</html>
