@@ -1,0 +1,462 @@
+/* ============================================================
+   KDS v1.0 · tokens/kds.css · © Khosha Systems. All rights reserved.
+   ------------------------------------------------------------
+   The single token vocabulary for every KDS surface. Pure CSS,
+   zero JavaScript, no external URLs, no web fonts.
+
+   THEME MODEL
+     :root                              primitives + LIGHT semantic set
+     [data-kds-theme="light"]           light set again (nested re-scoping)
+     [data-kds-theme="dark"]            DARK semantic set
+     @media (prefers-color-scheme: dark)
+       :root:where(:not([data-kds-theme="light"]))   dark set — no attribute follows the OS
+   Every token rule in KDS has specificity (0,1,0) — the media block uses
+   :where() to stay there — so a philosophy preset or brand file loaded AFTER
+   kds.css wins by source order in every theme, OS-dark included.
+   v0 was dark-by-default. To keep v0 behaviour add data-kds-theme="dark"
+   to <html>. Both sets are complete: every colour exists in both.
+
+   RAMPS  --kds-n0…n10 (cool, default) and --kds-w0…w10 (warm). Semantic
+   colours only ever reference --kds-n*, so a philosophy or brand swaps the
+   whole neutral world by remapping --kds-n* → --kds-w* (or its own values)
+   and BOTH themes follow. Light surfaces are color-mix()ed from n9/n10 so a
+   swapped ramp tints them too.
+
+   ATTRIBUTES  data-kds-theme | data-kds-philosophy | data-kds-density go
+   on <html> (the same element). data-kds-theme may also be nested
+   (a dark band in a light page). Density may also be nested.
+
+   CONTRAST (computed 2026-09-15, scratch tokens-work/contrast.mjs,
+   WCAG 2.x relative luminance; light values are the color-mix results):
+     check                                        fg       bg       ratio  min  result
+     cool light  fg on bg                         #0b0e14  #f6f7fb  18.04  4.5  PASS
+     cool light  fg on surface                    #0b0e14  #ffffff  19.32  4.5  PASS
+     cool light  fg-muted on surface              #5d6b86  #ffffff  5.37   4.5  PASS
+     cool light  fg-muted on bg                   #5d6b86  #f6f7fb  5.01   4.5  PASS
+     cool light  fg-muted on surface-2            #5d6b86  #eff2f7  4.78   4.5  PASS
+     cool light  fg-faint on surface              #8593a8  #ffffff  3.12   3    PASS
+     cool light  border-strong vs surface         #8593a8  #ffffff  3.12   3    PASS
+     cool dark   fg on bg                         #e8ecf4  #0b0e14  16.31  4.5  PASS
+     cool dark   fg on surface                    #e8ecf4  #10151e  15.45  4.5  PASS
+     cool dark   fg-muted on surface              #8593a8  #10151e  5.87   4.5  PASS
+     cool dark   fg-muted on surface-2            #8593a8  #161d29  5.42   4.5  PASS
+     cool dark   fg-faint on surface              #5d6b86  #10151e  3.41   3    PASS
+     cool dark   border-strong vs surface         #5d6b86  #10151e  3.41   3    PASS
+     light  sky (74% + ink = #456ac0) on surface  #456ac0  #ffffff  5.15   4.5  PASS
+     light  white on sky                          #ffffff  #456ac0  5.15   4.5  PASS
+     light  leaf (58% + ink = #1e7a47) on surface #1e7a47  #ffffff  5.34   4.5  PASS
+     light  white on leaf                         #ffffff  #1e7a47  5.34   4.5  PASS
+     light  rose (74% + ink = #bf4156) on surface #bf4156  #ffffff  5.11   4.5  PASS
+     light  white on rose                         #ffffff  #bf4156  5.11   4.5  PASS
+     light  amber (48% + ink = #7e6324) on surface #7e6324  #ffffff  5.68   4.5  PASS
+     light  white on amber                        #ffffff  #7e6324  5.68   4.5  PASS
+     light  iris (68% + ink = #6d57b2) on surface #6d57b2  #ffffff  5.74   4.5  PASS
+     light  white on iris                         #ffffff  #6d57b2  5.74   4.5  PASS
+     light  teal (58% + ink = #1c756f) on surface #1c756f  #ffffff  5.49   4.5  PASS
+     light  white on teal                         #ffffff  #1c756f  5.49   4.5  PASS
+     dark   sky on surface                        #5b8cff  #10151e  5.78   4.5  PASS
+     dark   ink (n0) on sky                       #07090d  #5b8cff  6.30   4.5  PASS
+     dark   leaf on surface                       #2ecc71  #10151e  8.70   4.5  PASS
+     dark   ink (n0) on leaf                      #07090d  #2ecc71  9.48   4.5  PASS
+     dark   rose on surface                       #ff5470  #10151e  5.88   4.5  PASS
+     dark   ink (n0) on rose                      #07090d  #ff5470  6.41   4.5  PASS
+     dark   amber on surface                      #ffc53d  #10151e  11.59  4.5  PASS
+     dark   ink (n0) on amber                     #07090d  #ffc53d  12.63  4.5  PASS
+     dark   iris on surface                       #9d7bff  #10151e  5.85   4.5  PASS
+     dark   ink (n0) on iris                      #07090d  #9d7bff  6.37   4.5  PASS
+     dark   teal on surface                       #2bc4b6  #10151e  8.43   4.5  PASS
+     dark   ink (n0) on teal                      #07090d  #2bc4b6  9.18   4.5  PASS
+     both   brand-fg #221302 on flame             #221302  #ff9933  8.48   4.5  PASS
+     light  ink on white                          #07090d  #ffffff  19.93  4.5  PASS
+     warm light  fg on bg                         #14100c  #f9f4ec  17.29  4.5  PASS
+     warm light  fg on surface                    #14100c  #fffcf7  18.50  4.5  PASS
+     warm light  fg-muted on surface              #786a5b  #fffcf7  5.12   4.5  PASS
+     warm light  fg-muted on bg                   #786a5b  #f9f4ec  4.78   4.5  PASS
+     warm light  fg-muted on surface-2            #786a5b  #f4eee4  4.54   4.5  PASS
+     warm light  fg-faint on surface              #9c8f7e  #fffcf7  3.09   3    PASS
+     warm light  border-strong vs surface         #9c8f7e  #fffcf7  3.09   3    PASS
+     warm dark   fg on bg                         #efe8dc  #14100c  15.55  4.5  PASS
+     warm dark   fg on surface                    #efe8dc  #1b1612  14.74  4.5  PASS
+     warm dark   fg-muted on surface              #9c8f7e  #1b1612  5.68   4.5  PASS
+     warm dark   fg-muted on surface-2            #9c8f7e  #251f19  5.16   4.5  PASS
+     warm dark   fg-faint on surface              #786a5b  #1b1612  3.43   3    PASS
+     warm dark   border-strong vs surface         #786a5b  #1b1612  3.43   3    PASS
+     
+     FAILS: 0
+   ============================================================ */
+
+:root {
+  /* ---------- primitives: neutral ramp, cool (n0 darkest → n10 white) ---------- */
+  --kds-n0: #07090d;
+  --kds-n1: #0b0e14;
+  --kds-n2: #10151e;
+  --kds-n3: #161d29;
+  --kds-n4: #222b3a;
+  --kds-n5: #2e3a4e;
+  --kds-n6: #5d6b86;   /* v0 #4a5871 — lifted so border-strong/fg-faint reach 3:1 on dark surfaces */
+  --kds-n7: #8593a8;   /* v0 #94a1b5 — deepened so it reaches 3:1 on white as light border-strong */
+  --kds-n8: #c5cdda;
+  --kds-n9: #e8ecf4;
+  --kds-n10: #ffffff;
+
+  /* ---------- primitives: neutral ramp, warm (same luminance steps, paper/coffee tint) ---------- */
+  --kds-w0: #0d0a07;
+  --kds-w1: #14100c;
+  --kds-w2: #1b1612;
+  --kds-w3: #251f19;
+  --kds-w4: #342c24;
+  --kds-w5: #453b31;
+  --kds-w6: #786a5b;
+  --kds-w7: #9c8f7e;
+  --kds-w8: #d5cbbd;
+  --kds-w9: #efe8dc;
+  --kds-w10: #fffcf7;
+
+  /* ---------- primitives: hues ---------- */
+  --kds-hue-flame: #ff9933;   /* warm brand accent */
+  --kds-hue-leaf: #2ecc71;    /* positive */
+  --kds-hue-sky: #5b8cff;     /* interactive */
+  --kds-hue-rose: #ff5470;    /* danger */
+  --kds-hue-amber: #ffc53d;   /* warning */
+  --kds-hue-iris: #9d7bff;    /* info / special */
+  --kds-hue-teal: #2bc4b6;    /* new: secondary interactive / data series */
+  --kds-hue-ink: #07090d;     /* new: the darkest "logo ink" */
+
+  /* ---------- semantic: colour (LIGHT — the default) ---------- */
+
+  /* surfaces */
+  --kds-bg: color-mix(in srgb, var(--kds-n9) 40%, var(--kds-n10));
+  --kds-surface: var(--kds-n10);
+  --kds-surface-2: color-mix(in srgb, var(--kds-n9) 70%, var(--kds-n10));
+  --kds-surface-3: var(--kds-n9);
+  --kds-border: color-mix(in srgb, var(--kds-n8) 55%, var(--kds-n9));
+  --kds-border-strong: var(--kds-n7);
+  /* text */
+  --kds-fg: var(--kds-n1);
+  --kds-fg-muted: var(--kds-n6);
+  --kds-fg-faint: var(--kds-n7);
+  /* interactive + brand (hues are mixed toward ink so they pass 4.5:1 on white) */
+  --kds-accent: color-mix(in srgb, var(--kds-hue-sky) 74%, var(--kds-hue-ink));
+  --kds-accent-fg: #ffffff;
+  --kds-accent-soft: color-mix(in srgb, var(--kds-accent) 12%, transparent);
+  --kds-brand: var(--kds-hue-flame);
+  --kds-brand-fg: #221302;
+  --kds-brand-soft: color-mix(in srgb, var(--kds-brand) 12%, transparent);
+  --kds-link: var(--kds-accent);
+  /* status */
+  --kds-positive: color-mix(in srgb, var(--kds-hue-leaf) 58%, var(--kds-hue-ink));
+  --kds-positive-fg: #ffffff;
+  --kds-positive-soft: color-mix(in srgb, var(--kds-positive) 12%, transparent);
+  --kds-warning: color-mix(in srgb, var(--kds-hue-amber) 48%, var(--kds-hue-ink));
+  --kds-warning-fg: #ffffff;
+  --kds-warning-soft: color-mix(in srgb, var(--kds-hue-amber) 18%, transparent);
+  --kds-danger: color-mix(in srgb, var(--kds-hue-rose) 74%, var(--kds-hue-ink));
+  --kds-danger-fg: #ffffff;
+  --kds-danger-soft: color-mix(in srgb, var(--kds-danger) 12%, transparent);
+  --kds-info: color-mix(in srgb, var(--kds-hue-iris) 68%, var(--kds-hue-ink));
+  --kds-info-fg: #ffffff;
+  --kds-info-soft: color-mix(in srgb, var(--kds-info) 12%, transparent);
+  /* utility */
+  --kds-focus-ring: var(--kds-accent);
+  --kds-scrim: color-mix(in srgb, var(--kds-n0) 45%, transparent);
+  --kds-selection: color-mix(in srgb, var(--kds-accent) 22%, transparent);
+  --kds-ink: var(--kds-hue-ink);
+  --kds-ink-fg: #ffffff;
+  --kds-inverse: var(--kds-n0);
+  --kds-inverse-fg: var(--kds-n10);
+  --kds-bg-gradient: none;
+  /* elevation (light: soft, tinted by n0 so warm ramps get warm shadows) */
+  --kds-shadow-0: none;
+  --kds-shadow-1: 0 1px 2px color-mix(in srgb, var(--kds-n0) 8%, transparent);
+  --kds-shadow-2: 0 6px 24px color-mix(in srgb, var(--kds-n0) 10%, transparent);
+  --kds-shadow-3: 0 16px 48px color-mix(in srgb, var(--kds-n0) 16%, transparent);
+  --kds-shadow-ring: 0 0 0 3px var(--kds-focus-ring);
+  color-scheme: light;
+
+  /* ---------- typography ---------- */
+  --kds-font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --kds-font-mono: ui-monospace, "SF Mono", "Cascadia Code", Menlo, monospace;
+  --kds-font-display: var(--kds-font-sans);
+  --kds-text-xs: 0.75rem;
+  --kds-text-sm: 0.875rem;
+  --kds-text-md: 1rem;
+  --kds-text-lg: 1.125rem;
+  --kds-text-xl: 1.375rem;
+  --kds-text-2xl: 1.75rem;
+  --kds-text-3xl: 2.25rem;
+  --kds-text-4xl: 3rem;
+  --kds-text-5xl: 3.75rem;
+  --kds-text-display: clamp(2.5rem, 1.6rem + 4vw, 4.5rem);
+  --kds-weight-regular: 400;
+  --kds-weight-medium: 500;
+  --kds-weight-semibold: 600;
+  --kds-weight-bold: 700;
+  --kds-leading-tight: 1.2;
+  --kds-leading-body: 1.6;
+  --kds-leading-display: 1.05;
+  --kds-tracking-tight: -0.015em;
+  --kds-tracking-wide: 0.06em;
+  --kds-measure: 65ch;
+
+  /* ---------- space (unit-based; see the derived scale rule below) ---------- */
+  --kds-sp-unit: 0.25rem;
+  --kds-gutter: clamp(1rem, 4vw, 2.5rem);
+  --kds-section: clamp(3rem, 8vw, 6rem);
+  --kds-container: 1120px;
+  --kds-container-sm: 640px;
+  --kds-container-md: 768px;
+  --kds-container-lg: 1024px;
+  --kds-container-xl: 1280px;
+  --kds-control-h: 40px;
+  --kds-control-px: 0.9rem;
+
+  /* ---------- shape ---------- */
+  --kds-radius-xs: 3px;
+  --kds-radius-sm: 6px;
+  --kds-radius-md: 10px;
+  --kds-radius-lg: 16px;
+  --kds-radius-xl: 24px;
+  --kds-radius-full: 999px;
+  --kds-border-w: 1px;
+
+  /* ---------- motion ---------- */
+  --kds-dur-fast: 120ms;
+  --kds-dur-base: 200ms;
+  --kds-dur-slow: 320ms;
+  --kds-dur-grand: 600ms;
+  --kds-ease-standard: cubic-bezier(0.2, 0, 0.2, 1);
+  --kds-ease-enter: cubic-bezier(0.16, 1, 0.3, 1);
+  --kds-ease-exit: cubic-bezier(0.6, 0, 0.85, 0.4);
+  --kds-ease-spring: cubic-bezier(0.34, 1.45, 0.5, 1); /* gentle overshoot */
+  --kds-ease-emphasized: cubic-bezier(0.3, 0, 0, 1);
+  --kds-motion-scale: 1;                                /* JS engines multiply by this; Monolith = 0 */
+
+  /* ---------- layers ---------- */
+  --kds-z-sticky: 100;
+  --kds-z-dropdown: 500;
+  --kds-z-overlay: 800;
+  --kds-z-drawer: 850;
+  --kds-z-modal: 900;
+  --kds-z-cmdk: 950;
+  --kds-z-toast: 1000;
+  --kds-z-top: 1100;   /* confetti / custom cursor */
+
+  /* Breakpoints cannot be tokens. Documented values: 480 / 768 / 1024 / 1280 px.
+     Comment them in media queries as bp-sm / bp-md / bp-lg / bp-xl. */
+}
+
+/* ---------- explicit light (also lets a light band nest inside a dark page) ---------- */
+[data-kds-theme="light"] {
+
+  /* surfaces */
+  --kds-bg: color-mix(in srgb, var(--kds-n9) 40%, var(--kds-n10));
+  --kds-surface: var(--kds-n10);
+  --kds-surface-2: color-mix(in srgb, var(--kds-n9) 70%, var(--kds-n10));
+  --kds-surface-3: var(--kds-n9);
+  --kds-border: color-mix(in srgb, var(--kds-n8) 55%, var(--kds-n9));
+  --kds-border-strong: var(--kds-n7);
+  /* text */
+  --kds-fg: var(--kds-n1);
+  --kds-fg-muted: var(--kds-n6);
+  --kds-fg-faint: var(--kds-n7);
+  /* interactive + brand (hues are mixed toward ink so they pass 4.5:1 on white) */
+  --kds-accent: color-mix(in srgb, var(--kds-hue-sky) 74%, var(--kds-hue-ink));
+  --kds-accent-fg: #ffffff;
+  --kds-accent-soft: color-mix(in srgb, var(--kds-accent) 12%, transparent);
+  --kds-brand: var(--kds-hue-flame);
+  --kds-brand-fg: #221302;
+  --kds-brand-soft: color-mix(in srgb, var(--kds-brand) 12%, transparent);
+  --kds-link: var(--kds-accent);
+  /* status */
+  --kds-positive: color-mix(in srgb, var(--kds-hue-leaf) 58%, var(--kds-hue-ink));
+  --kds-positive-fg: #ffffff;
+  --kds-positive-soft: color-mix(in srgb, var(--kds-positive) 12%, transparent);
+  --kds-warning: color-mix(in srgb, var(--kds-hue-amber) 48%, var(--kds-hue-ink));
+  --kds-warning-fg: #ffffff;
+  --kds-warning-soft: color-mix(in srgb, var(--kds-hue-amber) 18%, transparent);
+  --kds-danger: color-mix(in srgb, var(--kds-hue-rose) 74%, var(--kds-hue-ink));
+  --kds-danger-fg: #ffffff;
+  --kds-danger-soft: color-mix(in srgb, var(--kds-danger) 12%, transparent);
+  --kds-info: color-mix(in srgb, var(--kds-hue-iris) 68%, var(--kds-hue-ink));
+  --kds-info-fg: #ffffff;
+  --kds-info-soft: color-mix(in srgb, var(--kds-info) 12%, transparent);
+  /* utility */
+  --kds-focus-ring: var(--kds-accent);
+  --kds-scrim: color-mix(in srgb, var(--kds-n0) 45%, transparent);
+  --kds-selection: color-mix(in srgb, var(--kds-accent) 22%, transparent);
+  --kds-ink: var(--kds-hue-ink);
+  --kds-ink-fg: #ffffff;
+  --kds-inverse: var(--kds-n0);
+  --kds-inverse-fg: var(--kds-n10);
+  --kds-bg-gradient: none;
+  /* elevation (light: soft, tinted by n0 so warm ramps get warm shadows) */
+  --kds-shadow-0: none;
+  --kds-shadow-1: 0 1px 2px color-mix(in srgb, var(--kds-n0) 8%, transparent);
+  --kds-shadow-2: 0 6px 24px color-mix(in srgb, var(--kds-n0) 10%, transparent);
+  --kds-shadow-3: 0 16px 48px color-mix(in srgb, var(--kds-n0) 16%, transparent);
+  --kds-shadow-ring: 0 0 0 3px var(--kds-focus-ring);
+  color-scheme: light;
+}
+
+/* ---------- explicit dark ---------- */
+[data-kds-theme="dark"] {
+
+  /* surfaces */
+  --kds-bg: var(--kds-n1);
+  --kds-surface: var(--kds-n2);
+  --kds-surface-2: var(--kds-n3);
+  --kds-surface-3: var(--kds-n4);
+  --kds-border: var(--kds-n4);
+  --kds-border-strong: var(--kds-n6);
+  /* text */
+  --kds-fg: var(--kds-n9);
+  --kds-fg-muted: var(--kds-n7);
+  --kds-fg-faint: var(--kds-n6);
+  /* interactive + brand (raw hues; ink text on the bright fills for 4.5:1) */
+  --kds-accent: var(--kds-hue-sky);
+  --kds-accent-fg: var(--kds-hue-ink);
+  --kds-accent-soft: color-mix(in srgb, var(--kds-accent) 12%, transparent);
+  --kds-brand: var(--kds-hue-flame);
+  --kds-brand-fg: #221302;
+  --kds-brand-soft: color-mix(in srgb, var(--kds-brand) 12%, transparent);
+  --kds-link: var(--kds-accent);
+  /* status */
+  --kds-positive: var(--kds-hue-leaf);
+  --kds-positive-fg: var(--kds-hue-ink);
+  --kds-positive-soft: color-mix(in srgb, var(--kds-positive) 12%, transparent);
+  --kds-warning: var(--kds-hue-amber);
+  --kds-warning-fg: var(--kds-hue-ink);
+  --kds-warning-soft: color-mix(in srgb, var(--kds-warning) 12%, transparent);
+  --kds-danger: var(--kds-hue-rose);
+  --kds-danger-fg: var(--kds-hue-ink);
+  --kds-danger-soft: color-mix(in srgb, var(--kds-danger) 12%, transparent);
+  --kds-info: var(--kds-hue-iris);
+  --kds-info-fg: var(--kds-hue-ink);
+  --kds-info-soft: color-mix(in srgb, var(--kds-info) 12%, transparent);
+  /* utility */
+  --kds-focus-ring: var(--kds-accent);
+  --kds-scrim: color-mix(in srgb, var(--kds-n0) 66%, transparent);
+  --kds-selection: color-mix(in srgb, var(--kds-accent) 28%, transparent);
+  --kds-ink: var(--kds-hue-ink);
+  --kds-ink-fg: #ffffff;
+  --kds-inverse: var(--kds-n10);
+  --kds-inverse-fg: var(--kds-n0);
+  --kds-bg-gradient: none;
+  /* elevation (dark: deeper, pure black) */
+  --kds-shadow-0: none;
+  --kds-shadow-1: 0 1px 2px rgba(0, 0, 0, 0.25);
+  --kds-shadow-2: 0 6px 24px rgba(0, 0, 0, 0.3);
+  --kds-shadow-3: 0 16px 48px rgba(0, 0, 0, 0.42);
+  --kds-shadow-ring: 0 0 0 3px var(--kds-focus-ring);
+  color-scheme: dark;
+}
+
+/* ---------- no attribute → follow the OS (:where keeps specificity at 0,1,0 so later presets/brands win) ---------- */
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-kds-theme="light"])) {
+
+    /* surfaces */
+    --kds-bg: var(--kds-n1);
+    --kds-surface: var(--kds-n2);
+    --kds-surface-2: var(--kds-n3);
+    --kds-surface-3: var(--kds-n4);
+    --kds-border: var(--kds-n4);
+    --kds-border-strong: var(--kds-n6);
+    /* text */
+    --kds-fg: var(--kds-n9);
+    --kds-fg-muted: var(--kds-n7);
+    --kds-fg-faint: var(--kds-n6);
+    /* interactive + brand (raw hues; ink text on the bright fills for 4.5:1) */
+    --kds-accent: var(--kds-hue-sky);
+    --kds-accent-fg: var(--kds-hue-ink);
+    --kds-accent-soft: color-mix(in srgb, var(--kds-accent) 12%, transparent);
+    --kds-brand: var(--kds-hue-flame);
+    --kds-brand-fg: #221302;
+    --kds-brand-soft: color-mix(in srgb, var(--kds-brand) 12%, transparent);
+    --kds-link: var(--kds-accent);
+    /* status */
+    --kds-positive: var(--kds-hue-leaf);
+    --kds-positive-fg: var(--kds-hue-ink);
+    --kds-positive-soft: color-mix(in srgb, var(--kds-positive) 12%, transparent);
+    --kds-warning: var(--kds-hue-amber);
+    --kds-warning-fg: var(--kds-hue-ink);
+    --kds-warning-soft: color-mix(in srgb, var(--kds-warning) 12%, transparent);
+    --kds-danger: var(--kds-hue-rose);
+    --kds-danger-fg: var(--kds-hue-ink);
+    --kds-danger-soft: color-mix(in srgb, var(--kds-danger) 12%, transparent);
+    --kds-info: var(--kds-hue-iris);
+    --kds-info-fg: var(--kds-hue-ink);
+    --kds-info-soft: color-mix(in srgb, var(--kds-info) 12%, transparent);
+    /* utility */
+    --kds-focus-ring: var(--kds-accent);
+    --kds-scrim: color-mix(in srgb, var(--kds-n0) 66%, transparent);
+    --kds-selection: color-mix(in srgb, var(--kds-accent) 28%, transparent);
+    --kds-ink: var(--kds-hue-ink);
+    --kds-ink-fg: #ffffff;
+    --kds-inverse: var(--kds-n10);
+    --kds-inverse-fg: var(--kds-n0);
+    --kds-bg-gradient: none;
+    /* elevation (dark: deeper, pure black) */
+    --kds-shadow-0: none;
+    --kds-shadow-1: 0 1px 2px rgba(0, 0, 0, 0.25);
+    --kds-shadow-2: 0 6px 24px rgba(0, 0, 0, 0.3);
+    --kds-shadow-3: 0 16px 48px rgba(0, 0, 0, 0.42);
+    --kds-shadow-ring: 0 0 0 3px var(--kds-focus-ring);
+    color-scheme: dark;
+  }
+}
+
+/* ---------- derived spacing scale ----------
+   Declared on :root AND on any density-scoped element so var(--kds-sp-unit)
+   resolves where the unit is overridden. sp-1…sp-8 keep their v0 values
+   (1,2,3,4,6,8,12,16 units); sp-0, sp-9, sp-10 are new. */
+:root,
+[data-kds-density] {
+
+    --kds-sp-0: calc(var(--kds-sp-unit) * 0);
+    --kds-sp-1: calc(var(--kds-sp-unit) * 1);
+    --kds-sp-2: calc(var(--kds-sp-unit) * 2);
+    --kds-sp-3: calc(var(--kds-sp-unit) * 3);
+    --kds-sp-4: calc(var(--kds-sp-unit) * 4);
+    --kds-sp-5: calc(var(--kds-sp-unit) * 6);
+    --kds-sp-6: calc(var(--kds-sp-unit) * 8);
+    --kds-sp-7: calc(var(--kds-sp-unit) * 12);
+    --kds-sp-8: calc(var(--kds-sp-unit) * 16);
+    --kds-sp-9: calc(var(--kds-sp-unit) * 24);
+    --kds-sp-10: calc(var(--kds-sp-unit) * 32);
+}
+
+/* ---------- density ---------- */
+[data-kds-density="compact"] {
+  --kds-sp-unit: 0.2rem;
+  --kds-control-h: 32px;
+  --kds-control-px: 0.7rem;
+}
+
+[data-kds-density="comfortable"] {
+  --kds-sp-unit: 0.3rem;
+  --kds-control-h: 44px;
+  --kds-control-px: 1.1rem;
+}
+
+/* ---------- reduced motion: every non-essential animation collapses ---------- */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --kds-dur-fast: 0ms;
+    --kds-dur-base: 0ms;
+    --kds-dur-slow: 0ms;
+    --kds-dur-grand: 0ms;
+    --kds-motion-scale: 0;
+  }
+}
+
+/* ---------- focus ring base rule (zero specificity so recipes can refine it) ---------- */
+:where(.kds-focusable, [class*="kds-"]):focus-visible {
+  outline: 2px solid var(--kds-focus-ring);
+  outline-offset: 2px;
+}
+
+/* ---------- text selection follows the accent ---------- */
+::selection {
+  background: var(--kds-selection);
+}

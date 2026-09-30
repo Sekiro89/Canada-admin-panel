@@ -1,0 +1,36 @@
+/* KDS v1.0 · tokens/philosophies/filter-coffee.css · © Khosha Systems. All rights reserved.
+   School of Warmth · FILTER COFFEE — dark, warm, brass-and-cream; the late-night Bangalore café. Warm ramp.
+   Suits: community products, blogs, membership, newsletters, editorial apps (9180 lives here). Motion: gentle riseIn cascades. */
+[data-kds-philosophy="filter-coffee"] {
+  --kds-n0: var(--kds-w0);  --kds-n1: var(--kds-w1);  --kds-n2: var(--kds-w2);
+  --kds-n3: var(--kds-w3);  --kds-n4: var(--kds-w4);  --kds-n5: var(--kds-w5);
+  --kds-n6: var(--kds-w6);  --kds-n7: var(--kds-w7);  --kds-n8: var(--kds-w8);
+  --kds-n9: var(--kds-w9);  --kds-n10: var(--kds-w10);
+  --kds-hue-ink: #0d0a07;
+  --kds-phil-brass: #c9a24e;
+  --kds-phil-cream: #f3e9d6;
+  --kds-accent: light-dark(#7a5a14, var(--kds-phil-brass));
+  --kds-accent-fg: light-dark(#ffffff, var(--kds-hue-ink));
+  --kds-brand: var(--kds-hue-flame);
+  --kds-scrim: color-mix(in srgb, var(--kds-w0) 70%, transparent);
+  --kds-font-display: Georgia, "Iowan Old Style", "Times New Roman", serif;
+  --kds-text-display: clamp(2.25rem, 1.5rem + 3vw, 4rem);
+  --kds-leading-display: 1.1;
+  --kds-tracking-tight: -0.01em;
+  --kds-sp-unit: 0.25rem;
+  --kds-gutter: clamp(1rem, 5vw, 3rem);
+  --kds-section: clamp(3.5rem, 9vw, 7rem);
+  --kds-radius-xs: 4px;
+  --kds-radius-sm: 8px;
+  --kds-radius-md: 12px;
+  --kds-radius-lg: 18px;
+  --kds-radius-xl: 28px;
+  --kds-shadow-1: 0 1px 2px color-mix(in srgb, var(--kds-w0) 18%, transparent);
+  --kds-shadow-2: 0 8px 28px color-mix(in srgb, var(--kds-w0) 24%, transparent);
+  --kds-shadow-3: 0 20px 56px color-mix(in srgb, var(--kds-w0) 34%, transparent);
+  --kds-dur-fast: 140ms;
+  --kds-dur-base: 240ms;
+  --kds-dur-slow: 400ms;
+  --kds-dur-grand: 800ms;
+  --kds-motion-scale: 1;
+}

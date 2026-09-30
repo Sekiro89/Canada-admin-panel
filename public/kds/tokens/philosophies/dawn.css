@@ -1,0 +1,31 @@
+/* KDS v1.0 · tokens/philosophies/dawn.css · © Khosha Systems. All rights reserved.
+   School of Calm · DAWN — gradient skies are the only decoration; everything else neutral, light weights, big radii.
+   Suits: status pages, wellness, waiting/loading states, welcome + sign-in screens. Motion: 600ms+ ambient drifts. */
+[data-kds-philosophy="dawn"] {
+  --kds-phil-sky-1: color-mix(in srgb, var(--kds-hue-rose) 18%, var(--kds-bg));
+  --kds-phil-sky-2: color-mix(in srgb, var(--kds-hue-amber) 14%, var(--kds-bg));
+  --kds-phil-sky-3: color-mix(in srgb, var(--kds-hue-sky) 16%, var(--kds-bg));
+  --kds-bg-gradient: linear-gradient(180deg, var(--kds-phil-sky-3) 0%, var(--kds-phil-sky-1) 55%, var(--kds-phil-sky-2) 100%);
+  --kds-accent: light-dark(color-mix(in srgb, var(--kds-hue-iris) 60%, var(--kds-hue-ink)), #b9a3ff);
+  --kds-accent-fg: light-dark(#ffffff, var(--kds-hue-ink));
+  --kds-brand: var(--kds-accent);
+  --kds-brand-fg: var(--kds-accent-fg);
+  --kds-border: color-mix(in srgb, var(--kds-fg) 8%, transparent);
+  --kds-border-strong: color-mix(in srgb, var(--kds-fg) 46%, transparent);
+  --kds-font-display: var(--kds-font-sans);
+  --kds-weight-medium: 500; --kds-weight-semibold: 500; --kds-weight-bold: 500;
+  --kds-text-display: clamp(2.25rem, 1.5rem + 3vw, 4rem);
+  --kds-leading-display: 1.15;
+  --kds-leading-body: 1.7;
+  --kds-tracking-wide: 0.12em;
+  --kds-sp-unit: 0.3rem;
+  --kds-gutter: clamp(1.5rem, 6vw, 4rem);
+  --kds-section: clamp(4rem, 12vw, 9rem);
+  --kds-radius-xs: 8px; --kds-radius-sm: 12px; --kds-radius-md: 16px; --kds-radius-lg: 24px; --kds-radius-xl: 32px;
+  --kds-shadow-2: 0 12px 40px color-mix(in srgb, var(--kds-n0) 7%, transparent);
+  --kds-shadow-3: 0 32px 80px color-mix(in srgb, var(--kds-n0) 10%, transparent);
+  --kds-dur-fast: 240ms; --kds-dur-base: 400ms; --kds-dur-slow: 700ms; --kds-dur-grand: 1200ms;
+  --kds-ease-standard: var(--kds-ease-emphasized);
+  --kds-ease-enter: var(--kds-ease-emphasized);
+  --kds-ease-spring: var(--kds-ease-emphasized);
+}

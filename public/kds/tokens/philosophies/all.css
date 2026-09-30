@@ -1,0 +1,16 @@
+/* KDS v1.0 · tokens/philosophies/all.css · © Khosha Systems. All rights reserved.
+   Loads every philosophy preset. Load AFTER tokens/kds.css; activate one with
+   <html data-kds-philosophy="ledger"> (or any name below). Each file is one
+   token-only rule, so loading all twelve costs ~20 KB and no specificity. */
+@import "./ledger.css";
+@import "./blueprint.css";
+@import "./stillwater.css";
+@import "./filter-coffee.css";
+@import "./verandah.css";
+@import "./festival.css";
+@import "./marquee.css";
+@import "./neon-mandi.css";
+@import "./monolith.css";
+@import "./dawn.css";
+@import "./archive.css";
+@import "./stage.css";

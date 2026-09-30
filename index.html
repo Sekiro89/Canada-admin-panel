@@ -1,307 +1,128 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-kds-philosophy="ledger">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <title>Ads Dashboard</title>
-<style>
-  :root { --bg:#f6f7f9; --card:#fff; --text:#1c2230; --muted:#667085; --line:#e4e7ec; --accent:#2457d6; --good:#12805c; --warn:#b54708; --bad:#b42318; }
-  * { box-sizing: border-box; }
-  body { margin:0; background:var(--bg); color:var(--text); font:15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-  header { background:var(--card); border-bottom:1px solid var(--line); padding:12px 16px; position:sticky; top:0; z-index:5; }
-  header h1 { font-size:17px; margin:0 0 8px; }
-  .tabs { display:flex; gap:6px; }
-  .tabs button { flex:1; max-width:160px; padding:8px; border:1px solid var(--line); background:#fff; border-radius:8px; font:inherit; cursor:pointer; }
-  .tabs button.on { background:var(--accent); color:#fff; border-color:var(--accent); }
-  main { padding:16px; max-width:1440px; margin:0 auto; }
-  .muted { color:var(--muted); font-size:13px; }
-  .note { background:#eef3fd; border:1px solid #d3e0fa; border-radius:10px; padding:10px 12px; font-size:14px; margin-bottom:12px; }
-  h2 { font-size:16px; margin:22px 0 10px; }
-  .grid { display:grid; gap:10px; grid-template-columns:repeat(auto-fill, minmax(150px,1fr)); }
-  .stat { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:12px; }
-  .stat b { display:block; font-size:22px; font-variant-numeric:tabular-nums; }
-  .stat span { color:var(--muted); font-size:13px; }
-  .grid.dim .stat { background:#fafbfc; } .grid.dim .stat b { color:var(--muted); }
-  .portals { display:grid; gap:12px; grid-template-columns:repeat(auto-fill, minmax(300px,1fr)); }
-  .portal { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px; }
-  .portal h3 { margin:0; font-size:16px; }
-  .portal h4 { margin:14px 0 0; font-size:12px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); }
-  .portal .err, .warnline { color:var(--bad); font-size:13px; }
-  .portal .dim dd { color:var(--muted); }
-  dl { display:grid; grid-template-columns:1fr auto; gap:4px 12px; margin:6px 0 0; }
-  dt { color:var(--muted); } dd { margin:0; text-align:right; font-variant-numeric:tabular-nums; }
-  .box { background:var(--card); border:1px solid var(--line); border-radius:10px; overflow-x:auto; }
-  table { width:100%; border-collapse:collapse; }
-  th, td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); white-space:nowrap; }
-  th { font-size:12px; text-transform:uppercase; letter-spacing:.03em; color:var(--muted); background:#fafbfc; }
-  th[data-k] { cursor:pointer; user-select:none; }
-  td.n, th.n { text-align:right; font-variant-numeric:tabular-nums; }
-  td.t { white-space:normal; min-width:200px; }
-  a { color:var(--accent); text-decoration:none; }
-  .pill { display:inline-block; align-self:flex-start; white-space:nowrap; padding:1px 8px; border-radius:99px; font-size:12px; background:#eef1f5; }
-  .pill.active, .pill.real { background:#e3f4ec; color:var(--good); }
-  .pill.expired { background:#fdf0e6; color:var(--warn); }
-  .pill.cancelled { background:#fdecea; color:var(--bad); }
-  .pill.imported, .pill.jobbank, .pill.import { background:#f1ecfb; color:#5b3fa8; }
-  .filters { display:grid; gap:8px; grid-template-columns:repeat(auto-fill, minmax(160px,1fr)); margin-bottom:10px; }
-  .filters input, .filters select { width:100%; padding:9px; border:1px solid var(--line); border-radius:8px; font:inherit; background:#fff; }
-  .summary { margin:8px 0 10px; }
-  .cards { display:none; }
-  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:12px; margin-bottom:8px; }
-  .card .top { display:flex; justify-content:space-between; gap:8px; }
-  .card .title { font-weight:600; word-break:break-word; }
-  .card .meta { color:var(--muted); font-size:13px; margin-top:2px; }
-  .card .row { display:flex; justify-content:space-between; gap:8px; margin-top:8px; font-size:14px; }
-  .more[hidden] { display:none; }
-  .more { display:block; width:100%; padding:10px; margin-top:6px; border:1px solid var(--line); border-radius:8px; background:#fff; font:inherit; }
-  @media (max-width: 720px) {
-    .wide { display:none; } .cards { display:block; }
-    .stat b { font-size:19px; }
-    #monthly th, #monthly td { padding:8px 6px; font-size:13px; }
-  }
-</style>
+<script>(function(){try{var t=localStorage.getItem('kds-theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-kds-theme',t)}catch(e){}})()</script>
+<link rel="stylesheet" href="/kds/tokens/kds.css">
+<link rel="stylesheet" href="/kds/css/components.css">
+<link rel="stylesheet" href="/kds/tokens/philosophies/ledger.css">
+<link rel="stylesheet" href="/app.css">
 </head>
 <body>
-<header>
-  <h1>Ads Dashboard <span class="muted" id="stamp"></span></h1>
-  <div class="tabs">
-    <button data-view="overview" class="on">Real activity</button><button data-view="people">People</button><button data-view="ads">All ads</button>
+<header class="bar">
+  <div class="bar__row wrap">
+    <div class="bar__title">
+      <span class="kds-eyebrow">Canada Careers · Youth · Newcomer</span>
+      <h1 class="bar__h">Ads dashboard</h1>
+    </div>
+    <div class="bar__actions">
+      <span class="kds-caption bar__stamp" id="stamp" aria-live="polite">Loading…</span>
+      <button type="button" class="kds-btn kds-btn--ghost kds-btn--icon" id="refresh" aria-label="Refresh data">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
+      </button>
+      <button type="button" class="kds-theme-toggle" data-kds="theme-toggle" aria-label="Toggle colour theme">
+        <svg class="kds-theme-toggle__sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+        <svg class="kds-theme-toggle__moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="wrap">
+    <div class="kds-tabs kds-tabs--line tabs" role="tablist" aria-label="Sections" data-kds="tabs">
+      <span class="kds-tabs__ink" aria-hidden="true"></span>
+      <button class="kds-tab" role="tab" aria-selected="true" aria-controls="p-overview" id="t-overview">Overview</button>
+      <button class="kds-tab" role="tab" aria-selected="false" aria-controls="p-people" id="t-people">People <span class="count" id="nPeople"></span></button>
+      <button class="kds-tab" role="tab" aria-selected="false" aria-controls="p-ads" id="t-ads">Ads <span class="count" id="nAds"></span></button>
+    </div>
   </div>
 </header>
-<main>
-  <section id="overview">
-    <div class="note">Only real people are counted here. <b>Excluded:</b> ads imported from the BRC list and from Job Bank, demo/seed data, test accounts and staff accounts.
-      <b>Money received</b> counts only card payments through Stripe.</div>
-    <div class="grid" id="totals"></div>
-    <h2>By portal</h2>
-    <div class="portals" id="portals"></div>
-    <h2>Money received by month (Stripe, CAD incl. tax)</h2>
-    <div class="box"><table id="monthly"></table></div>
-    <h2>Imported &amp; test data (kept separate)</h2>
-    <div class="grid dim" id="importTotals"></div>
-    <p class="muted">The imported ads have "payment" records written by the import scripts so that the admin screens show them as paid. <b>No money was collected for them.</b></p>
+
+<main class="wrap">
+  <!-- ============ OVERVIEW ============ -->
+  <section id="p-overview" role="tabpanel" aria-labelledby="t-overview" class="panel">
+    <div class="hero">
+      <div class="hero__money">
+        <span class="kds-eyebrow">Money received</span>
+        <span class="hero__value" id="heroMoney"><span class="kds-skeleton" style="width:6ch;height:1em"></span></span>
+        <span class="kds-caption" id="heroMoneySub">Card payments through Stripe, CAD incl. tax</span>
+      </div>
+      <div class="kpis" id="kpis"></div>
+    </div>
+
+    <div class="alerts" id="alerts"></div>
+
+    <div class="block">
+      <div class="block__head"><h2 class="kds-h4">Portals side by side</h2><span class="kds-caption">Real activity only. Imports, Job Bank, demo data and test/staff accounts are counted separately below.</span></div>
+      <div class="scroll"><table class="kds-table kds-table--dense compare" id="compare"></table></div>
+    </div>
+
+    <div class="split">
+      <div class="block">
+        <div class="block__head"><h2 class="kds-h4">Money received by month</h2><span class="kds-caption">Stripe only</span></div>
+        <div class="scroll"><table class="kds-table kds-table--dense" id="monthly"></table></div>
+      </div>
+      <div class="block block--muted">
+        <div class="block__head"><h2 class="kds-h4">Imported &amp; test data</h2><span class="kds-caption">Kept out of every number above</span></div>
+        <dl class="facts" id="imported"></dl>
+        <p class="kds-caption note">The import scripts wrote “payment” records so imported ads show as paid in admin. <strong>No money was collected for them.</strong></p>
+      </div>
+    </div>
   </section>
 
-  <section id="people" hidden>
+  <!-- ============ PEOPLE ============ -->
+  <section id="p-people" role="tabpanel" aria-labelledby="t-people" class="panel" hidden>
     <div class="filters">
-      <input id="pq" type="search" placeholder="Search email or name">
-      <select id="pPortal"><option value="">All portals</option></select>
-      <select id="pKind"><option value="real" selected>Real people</option><option value="">Everyone</option><option value="test">Test / demo</option><option value="staff">Staff / admin</option><option value="import">Import account</option></select>
-      <select id="pRole"><option value="">All roles</option><option value="employer">Employer</option><option value="consultant">Consultant</option><option value="seeker">Job seeker</option><option value="admin">Admin</option></select>
+      <label class="kds-visually-hidden" for="pq">Search people</label>
+      <input class="kds-input filters__search" id="pq" type="search" placeholder="Search email or name">
+      <label class="kds-visually-hidden" for="pKind">Account type</label>
+      <select class="kds-select" id="pKind"><option value="real" selected>Real people</option><option value="">All accounts</option><option value="test">Test / demo</option><option value="staff">Staff / admin</option><option value="import">Import account</option></select>
+      <label class="kds-visually-hidden" for="pPortal">Portal</label>
+      <select class="kds-select" id="pPortal"><option value="">All portals</option></select>
+      <label class="kds-visually-hidden" for="pRole">Role</label>
+      <select class="kds-select" id="pRole"><option value="">All roles</option><option value="employer">Employer</option><option value="consultant">Consultant</option><option value="seeker">Job seeker</option><option value="admin">Admin</option></select>
     </div>
-    <div class="summary muted" id="pSummary"></div>
-    <div class="box wide"><table>
+    <p class="kds-caption summary" id="pSummary" aria-live="polite"></p>
+    <div class="scroll wide"><table class="kds-table kds-table--dense">
       <thead><tr><th>Person</th><th>Role</th><th>Portal</th><th>Type</th><th>Joined</th><th>Last login</th>
-        <th class="n">Ads posted</th><th class="n">Paid (Stripe)</th><th class="n">Sandbox</th><th class="n">Applications</th></tr></thead>
+        <th class="kds-table__num">Ads</th><th class="kds-table__num">Paid</th><th class="kds-table__num">Sandbox</th><th class="kds-table__num">Applied</th></tr></thead>
       <tbody id="pBody"></tbody></table></div>
     <div class="cards" id="pCards"></div>
   </section>
 
-  <section id="ads" hidden>
+  <!-- ============ ADS ============ -->
+  <section id="p-ads" role="tabpanel" aria-labelledby="t-ads" class="panel" hidden>
     <div class="filters">
-      <input id="q" type="search" placeholder="Search title, employer, city">
-      <select id="fOrigin">
+      <label class="kds-visually-hidden" for="q">Search ads</label>
+      <input class="kds-input filters__search" id="q" type="search" placeholder="Search title, employer, city, poster">
+      <label class="kds-visually-hidden" for="fOrigin">Origin</label>
+      <select class="kds-select" id="fOrigin">
         <option value="real" selected>Posted by real people</option><option value="">All ads</option>
         <option value="imported">Imported (BRC list)</option><option value="jobbank">Job Bank</option><option value="test">Test / demo</option>
       </select>
-      <select id="fPortal"><option value="">All portals</option></select>
-      <select id="fStatus"><option value="">All statuses</option></select>
-      <select id="fSort">
+      <label class="kds-visually-hidden" for="fPortal">Portal</label>
+      <select class="kds-select" id="fPortal"><option value="">All portals</option></select>
+      <label class="kds-visually-hidden" for="fStatus">Status</label>
+      <select class="kds-select" id="fStatus"><option value="">All statuses</option></select>
+      <label class="kds-visually-hidden" for="fSort">Sort</label>
+      <select class="kds-select" id="fSort">
         <option value="published_at">Newest first</option><option value="stripe_cents">Most paid</option>
         <option value="views">Most views</option><option value="applications">Most applications</option><option value="expires_at">Expiring soonest</option>
       </select>
     </div>
-    <div class="summary muted" id="summary"></div>
-    <div class="box wide"><table>
+    <p class="kds-caption summary" id="summary" aria-live="polite"></p>
+    <div class="scroll wide"><table class="kds-table kds-table--dense">
       <thead><tr>
-        <th data-k="portal">Portal</th><th data-k="title">Ad</th><th data-k="employer">Employer</th><th data-k="creator_email">Posted by</th>
-        <th data-k="origin">Origin</th><th data-k="status">Status</th><th class="n" data-k="stripe_cents">Paid (Stripe)</th><th class="n" data-k="sandbox_cents">Sandbox</th>
-        <th class="n" data-k="applications">Apps</th><th data-k="published_at">Published</th><th data-k="expires_at">Expires</th><th class="n" data-k="views">Views</th>
+        <th aria-sort="none" data-k="title">Ad</th><th aria-sort="none" data-k="portal">Portal</th><th aria-sort="none" data-k="creator_email">Posted by</th>
+        <th aria-sort="none" data-k="origin">Origin</th><th aria-sort="none" data-k="status">Status</th>
+        <th aria-sort="none" class="kds-table__num" data-k="stripe_cents">Paid</th><th aria-sort="none" class="kds-table__num" data-k="applications">Apps</th>
+        <th aria-sort="none" class="kds-table__num" data-k="views">Views</th><th aria-sort="descending" data-k="published_at">Published</th><th aria-sort="none" data-k="expires_at">Expires</th>
       </tr></thead><tbody id="adsBody"></tbody></table></div>
     <div class="cards" id="adsCards"></div>
-    <button class="more" id="more" hidden>Show more</button>
+    <button type="button" class="kds-btn kds-btn--ghost kds-btn--block more" id="more" hidden>Show more</button>
   </section>
 </main>
-<script>
-const $ = s => document.querySelector(s);
-const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const money = c => '$' + (Number(c || 0) / 100).toLocaleString('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-const num = n => Number(n || 0).toLocaleString('en-CA');
-const day = d => d ? new Date(d).toISOString().slice(0, 10) : '—';   // UTC calendar date
-const DAY = 864e5, NOW = Date.now();
-const ORIGIN = { real: 'Real', imported: 'Imported (BRC)', jobbank: 'Job Bank', test: 'Test / demo' };
-const KIND = { real: 'Real', test: 'Test / demo', staff: 'Staff', import: 'Import account' };
-const ROLE = { employer: 'Employer', consultant: 'Consultant', seeker: 'Job seeker', admin: 'Admin' };
-const POSTERS = ['employer', 'consultant'];
-let ADS = [], PEOPLE = [], PORTALS = [], shown = 100, sortKey = 'published_at', sortDir = -1;
-
-document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
-  document.querySelectorAll('.tabs button').forEach(x => x.classList.toggle('on', x === b));
-  for (const v of ['overview', 'people', 'ads']) $('#' + v).hidden = b.dataset.view !== v;
-});
-
-const recent = (d, days) => d && NOW - new Date(d) < days * DAY;
-const sum = (list, k) => list.reduce((s, x) => s + Number(x[k] || 0), 0);
-
-function realStats(ads, people) {
-  const rp = people.filter(p => p.kind === 'real'), ra = ads.filter(a => a.origin === 'real');
-  return {
-    people: rp.length, emails: new Set(rp.map(p => p.email.toLowerCase())).size,
-    posters: rp.filter(p => POSTERS.includes(p.role)).length,
-    seekers: rp.filter(p => p.role === 'seeker').length,
-    postedAd: rp.filter(p => p.ads_posted > 0).length,
-    paidStripe: rp.filter(p => p.stripe_cents > 0).length,
-    ads: ra.length, activeAds: ra.filter(a => a.status === 'active').length,
-    stripe: sum(ads, 'stripe_cents'), stripeN: sum(ads, 'stripe_n'),
-    sandboxReal: sum(rp, 'sandbox_cents'),
-    apps: sum(rp, 'applications'),
-    appsToImported: sum(ads.filter(a => a.origin === 'imported' || a.origin === 'jobbank'), 'real_applications'),
-    appsToTest: sum(ads.filter(a => a.origin === 'test'), 'real_applications'),
-    testLive: ads.filter(a => a.origin === 'test' && a.status === 'active').length,
-    new30: rp.filter(p => recent(p.created_at, 30)).length,
-    login7: rp.filter(p => recent(p.last_login_at, 7)).length,
-  };
-}
-
-function renderOverview() {
-  const t = realStats(ADS, PEOPLE);
-  $('#totals').innerHTML = [
-    [num(t.emails), `Real people (${t.people} accounts across portals)`], [num(t.posters), 'Employers / consultants'], [num(t.seekers), 'Job seekers'],
-    [num(t.postedAd), 'People who posted an ad'], [num(t.ads), 'Ads posted by real people'], [num(t.activeAds), '…of which active now'],
-    [money(t.stripe), `Money received (${t.stripeN} Stripe payment${t.stripeN === 1 ? '' : 's'})`], [num(t.paidStripe), 'People who paid by card'],
-    [money(t.sandboxReal), 'Real people’s checkouts in sandbox (not collected)'],
-    [num(t.apps), 'Applications by real seekers'], [num(t.new30), 'Signed up in last 30 days'], [num(t.login7), 'Logged in last 7 days'],
-  ].map(([v, l]) => `<div class="stat"><b>${v}</b><span>${l}</span></div>`).join('');
-
-  $('#portals').innerHTML = PORTALS.map(p => {
-    const ads = ADS.filter(a => a.portal === p.name), people = PEOPLE.filter(x => x.portal === p.name);
-    const s = realStats(ads, people);
-    const cnt = o => ads.filter(a => a.origin === o).length;
-    const other = people.filter(x => x.kind !== 'real').length;
-    return `<div class="portal"><h3>${esc(p.name)}</h3><a class="muted" href="https://${esc(p.domain)}" target="_blank" rel="noopener">${esc(p.domain)}</a>
-      ${p.error ? `<p class="err">${esc(p.error)}</p>` : ''}
-      <h4>Real activity</h4>
-      <dl>
-        <dt>Real accounts signed up</dt><dd><b>${num(s.people)}</b></dd>
-        <dt>Employers / consultants</dt><dd>${num(s.posters)}</dd>
-        <dt>Job seekers</dt><dd>${num(s.seekers)}</dd>
-        <dt>Ads posted by real people</dt><dd>${num(s.ads)} <span class="muted">(${num(s.activeAds)} active)</span></dd>
-        <dt>Money received (Stripe)</dt><dd><b>${money(s.stripe)}</b></dd>
-        <dt>Sandbox checkouts by real people</dt><dd>${money(s.sandboxReal)}</dd>
-        <dt>Applications by real seekers</dt><dd>${num(s.apps)}</dd>
-        <dt>Logged in last 7 days</dt><dd>${num(s.login7)}</dd>
-      </dl>
-      ${!p.stripe_live ? '<p class="warnline">No Stripe payment has ever been recorded here, so checkouts on this portal are simulated.</p>' : ''}
-      <h4>Imported &amp; test (excluded above)</h4>
-      <dl class="dim">
-        <dt>Imported ads (BRC list)</dt><dd>${num(cnt('imported'))}</dd>
-        <dt>Job Bank ads</dt><dd>${num(cnt('jobbank'))}</dd>
-        <dt>Test / demo ads</dt><dd>${num(cnt('test'))}</dd>
-        <dt>Test, staff &amp; import accounts</dt><dd>${num(other)}</dd>
-        <dt>Real applications to imported ads</dt><dd>${num(s.appsToImported)}</dd>
-        <dt>Real applications to test / demo ads</dt><dd>${num(s.appsToTest)}</dd>
-      </dl>
-      ${s.testLive ? `<p class="warnline">${s.testLive} test / demo ad${s.testLive === 1 ? ' is' : 's are'} live on the public site${s.appsToTest ? ` and real seekers have applied to ${s.appsToTest === 1 ? 'one' : 'them'}` : ''}.</p>` : ''}</div>`;
-  }).join('');
-
-  const months = {};
-  for (const p of PORTALS) for (const m of p.monthly) (months[m.month] ??= {})[p.name] = m;
-  const keys = Object.keys(months).sort().reverse();
-  $('#monthly').innerHTML = `<thead><tr><th>Month</th>${PORTALS.map(p => `<th class="n">${esc(p.name)}</th>`).join('')}<th class="n">Total</th></tr></thead><tbody>` +
-    (keys.map(k => {
-      let tot = 0;
-      const cells = PORTALS.map(p => { const c = months[k][p.name]?.stripe_cents || 0; tot += c; return `<td class="n">${c ? money(c) : '—'}</td>`; }).join('');
-      return `<tr><td>${k}</td>${cells}<td class="n"><b>${money(tot)}</b></td></tr>`;
-    }).join('') || '<tr><td colspan="5" class="muted">No payments yet</td></tr>') + '</tbody>';
-
-  const imp = ADS.filter(a => a.origin === 'imported'), jb = ADS.filter(a => a.origin === 'jobbank'), tst = ADS.filter(a => a.origin === 'test');
-  $('#importTotals').innerHTML = [
-    [num(imp.length), 'Imported ads (BRC list)'], [num(imp.filter(a => a.status === 'active').length), '…still active'],
-    [num(jb.length), 'Job Bank ads'], [num(jb.filter(a => a.status === 'active').length), '…still active'],
-    [money(sum(ADS, 'import_cents')), 'Import “payment” records (no money)'],
-    [num(sum(imp, 'views') + sum(jb, 'views')), 'Views on imported ads'],
-    [num(tst.length), 'Test / demo ads'], [money(sum(tst, 'sandbox_cents')), 'Test sandbox checkouts'],
-  ].map(([v, l]) => `<div class="stat"><b>${v}</b><span>${l}</span></div>`).join('');
-}
-
-function renderPeople() {
-  const q = $('#pq').value.trim().toLowerCase(), fp = $('#pPortal').value, fk = $('#pKind').value, fr = $('#pRole').value;
-  const list = PEOPLE.filter(p => (!fp || p.portal === fp) && (!fk || p.kind === fk) && (!fr || p.role === fr) &&
-    (!q || [p.email, p.name].join(' ').toLowerCase().includes(q)))
-    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-  $('#pSummary').textContent = `${num(list.length)} accounts · ${num(sum(list, 'ads_posted'))} ads posted · ${money(sum(list, 'stripe_cents'))} paid by card · ${num(sum(list, 'applications'))} applications`;
-  const paid = p => p.stripe_cents > 0 ? money(p.stripe_cents) : '—';
-  $('#pBody').innerHTML = list.map(p => `<tr>
-    <td>${esc(p.email)}${p.name ? `<div class="muted">${esc(p.name)}</div>` : ''}</td><td>${esc(ROLE[p.role] || p.role)}</td><td>${esc(p.portal)}</td>
-    <td><span class="pill ${esc(p.kind)}">${esc(KIND[p.kind])}</span></td><td>${day(p.created_at)}</td><td>${day(p.last_login_at)}</td>
-    <td class="n">${p.ads_posted || '—'}${p.ads_imported ? `<div class="muted">+${p.ads_imported} imported</div>` : ''}</td>
-    <td class="n">${paid(p)}</td><td class="n muted">${p.sandbox_cents ? money(p.sandbox_cents) : '—'}</td><td class="n">${p.applications || '—'}</td></tr>`).join('') ||
-    '<tr><td colspan="10" class="muted">Nobody matches</td></tr>';
-  $('#pCards').innerHTML = list.map(p => `<div class="card">
-    <div class="top"><div><div class="title">${esc(p.email)}</div><div class="meta">${esc(ROLE[p.role] || p.role)} · ${esc(p.portal)}${p.name ? ' · ' + esc(p.name) : ''}</div></div>
-      <span class="pill ${esc(p.kind)}">${esc(KIND[p.kind])}</span></div>
-    <div class="row muted"><span>Joined ${day(p.created_at)}</span><span>Last login ${day(p.last_login_at)}</span></div>
-    <div class="row"><span>${p.ads_posted} ads posted${p.ads_imported ? ` <span class="muted">(+${p.ads_imported} imported)</span>` : ''} · ${p.applications} applications</span>
-      <b>${p.stripe_cents ? money(p.stripe_cents) : p.sandbox_cents ? `<span class="muted">${money(p.sandbox_cents)} sandbox</span>` : '<span class="muted">no payment</span>'}</b></div>
-  </div>`).join('') || '<p class="muted">Nobody matches</p>';
-}
-
-function filteredAds() {
-  const q = $('#q').value.trim().toLowerCase(), fo = $('#fOrigin').value, fp = $('#fPortal').value, fs = $('#fStatus').value;
-  const list = ADS.filter(a => (!fo || a.origin === fo) && (!fp || a.portal === fp) && (!fs || a.status === fs) &&
-    (!q || [a.title, a.employer, a.city, a.province, a.public_id, a.creator_email].join(' ').toLowerCase().includes(q)));
-  const k = sortKey, d = sortDir;
-  const val = a => ['stripe_cents', 'sandbox_cents', 'views', 'applications'].includes(k) ? Number(a[k] || 0)
-    : k.endsWith('_at') ? (a[k] ? new Date(a[k]).getTime() : (d > 0 ? Infinity : -Infinity)) : String(a[k] || '').toLowerCase();
-  return list.sort((a, b) => (val(a) > val(b) ? 1 : val(a) < val(b) ? -1 : 0) * d);
-}
-
-function link(a) {
-  const p = PORTALS.find(x => x.name === a.portal);
-  return a.status === 'active' && a.slug ? `<a href="https://${esc(p.domain)}/jobs/${esc(a.slug)}" target="_blank" rel="noopener">${esc(a.title)}</a>` : esc(a.title);
-}
-
-function renderAds() {
-  const list = filteredAds(), page = list.slice(0, shown);
-  $('#summary').textContent = `${num(list.length)} ads · ${num(list.filter(a => a.status === 'active').length)} active · ${money(sum(list, 'stripe_cents'))} received · ${num(sum(list, 'applications'))} applications`;
-  const where = a => esc([a.city, a.province].filter(Boolean).join(', '));
-  $('#adsBody').innerHTML = page.map(a => `<tr>
-    <td>${esc(a.portal)}</td><td class="t">${link(a)}<div class="muted">${esc(a.public_id || '#' + a.id)} · ${where(a)}</div></td>
-    <td>${esc(a.employer || '—')}</td><td>${esc(a.creator_email || '—')}</td>
-    <td><span class="pill ${esc(a.origin)}">${esc(ORIGIN[a.origin])}</span></td><td><span class="pill ${esc(a.status)}">${esc(a.status)}</span></td>
-    <td class="n">${a.stripe_cents > 0 ? money(a.stripe_cents) : '—'}</td><td class="n muted">${a.sandbox_cents > 0 ? money(a.sandbox_cents) : '—'}</td>
-    <td class="n">${a.applications || '—'}</td><td>${day(a.published_at)}</td><td>${day(a.expires_at)}</td><td class="n">${num(a.views)}</td></tr>`).join('') ||
-    '<tr><td colspan="12" class="muted">No ads match</td></tr>';
-  $('#adsCards').innerHTML = page.map(a => `<div class="card">
-    <div class="top"><div><div class="title">${link(a)}</div><div class="meta">${esc(a.employer || '—')} · ${where(a)}</div></div>
-      <span class="pill ${esc(a.status)}">${esc(a.status)}</span></div>
-    <div class="row"><span class="muted">${esc(a.portal)} · <span class="pill ${esc(a.origin)}">${esc(ORIGIN[a.origin])}</span></span>
-      <b>${a.stripe_cents > 0 ? money(a.stripe_cents) : a.sandbox_cents > 0 ? `<span class="muted">${money(a.sandbox_cents)} sandbox</span>` : '<span class="muted">no card payment</span>'}</b></div>
-    ${a.creator_email ? `<div class="meta">Posted by ${esc(a.creator_email)}</div>` : ''}
-    <div class="row muted"><span>Published ${day(a.published_at)}</span><span>${num(a.applications)} apps</span><span>${num(a.views)} views</span></div>
-  </div>`).join('') || '<p class="muted">No ads match</p>';
-  $('#more').hidden = list.length <= shown;
-}
-
-$('#more').onclick = () => { shown += 100; renderAds(); };
-['#q', '#fOrigin', '#fPortal', '#fStatus'].forEach(id => $(id).addEventListener('input', () => { shown = 100; renderAds(); }));
-['#pq', '#pPortal', '#pKind', '#pRole'].forEach(id => $(id).addEventListener('input', renderPeople));
-$('#fSort').onchange = e => { sortKey = e.target.value; sortDir = sortKey === 'expires_at' ? 1 : -1; shown = 100; renderAds(); };
-document.querySelectorAll('th[data-k]').forEach(th => th.onclick = () => {
-  sortDir = sortKey === th.dataset.k ? -sortDir : -1; sortKey = th.dataset.k; renderAds();
-});
-
-fetch('/api/data').then(r => r.json()).then(d => {
-  PORTALS = d.portals;
-  ADS = d.portals.flatMap(p => p.ads.map(a => ({ ...a, portal: p.name })));
-  PEOPLE = d.portals.flatMap(p => p.people.map(x => ({ ...x, portal: p.name })));
-  $('#stamp').textContent = '· as of ' + new Date(d.generated_at).toLocaleString();
-  const opts = PORTALS.map(p => `<option>${esc(p.name)}</option>`).join('');
-  $('#fPortal').innerHTML += opts; $('#pPortal').innerHTML += opts;
-  $('#fStatus').innerHTML += [...new Set(ADS.map(a => a.status))].sort().map(s => `<option>${esc(s)}</option>`).join('');
-  renderOverview(); renderPeople(); renderAds();
-}).catch(() => { $('#totals').innerHTML = '<p class="muted">Could not load data.</p>'; });
-</script>
+<script type="module" src="/app.js"></script>
 </body>
 </html>

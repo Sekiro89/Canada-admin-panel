@@ -1,0 +1,27 @@
+/* KDS v1.0 · tokens/philosophies/festival.css · © Khosha Systems. All rights reserved.
+   School of Warmth · FESTIVAL — saturated accents on deep grounds, celebratory but disciplined.
+   Suits: launches, milestones, success/thank-you states, event pages, rewards. Motion: popIn with overshoot; confetti once. */
+[data-kds-philosophy="festival"] {
+  --kds-accent: light-dark(color-mix(in srgb, var(--kds-hue-iris) 68%, var(--kds-hue-ink)), var(--kds-hue-iris));
+  --kds-accent-fg: light-dark(#ffffff, var(--kds-hue-ink));
+  --kds-brand: light-dark(color-mix(in srgb, var(--kds-hue-rose) 74%, var(--kds-hue-ink)), var(--kds-hue-rose));
+  --kds-brand-fg: light-dark(#ffffff, var(--kds-hue-ink));
+  --kds-bg-gradient: linear-gradient(135deg, color-mix(in srgb, var(--kds-hue-rose) 12%, var(--kds-bg)), color-mix(in srgb, var(--kds-hue-iris) 14%, var(--kds-bg)) 60%, color-mix(in srgb, var(--kds-hue-amber) 12%, var(--kds-bg)));
+  --kds-font-display: var(--kds-font-sans);
+  --kds-weight-bold: 800;
+  --kds-text-display: clamp(2.5rem, 1.6rem + 4.5vw, 5rem);
+  --kds-leading-display: 1;
+  --kds-tracking-tight: -0.03em;
+  --kds-sp-unit: 0.25rem;
+  --kds-section: clamp(3.5rem, 9vw, 7rem);
+  --kds-radius-xs: 6px; --kds-radius-sm: 10px; --kds-radius-md: 14px; --kds-radius-lg: 22px; --kds-radius-xl: 32px;
+  --kds-shadow-1: 0 1px 2px color-mix(in srgb, var(--kds-n0) 12%, transparent);
+  --kds-shadow-2: 0 8px 32px color-mix(in srgb, var(--kds-accent) 25%, transparent);
+  --kds-shadow-3: 0 20px 60px color-mix(in srgb, var(--kds-accent) 35%, transparent);
+  --kds-dur-fast: 120ms; --kds-dur-base: 220ms; --kds-dur-slow: 380ms; --kds-dur-grand: 900ms;
+  --kds-ease-enter: var(--kds-ease-spring);
+  --kds-ease-spring: cubic-bezier(0.34, 1.6, 0.5, 1);
+  --kds-motion-scale: 1.15;
+  /* confetti palette for motion.confetti({colors}) / .kds-confetti-bit */
+  --kds-phil-confetti: var(--kds-hue-flame), var(--kds-hue-sky), var(--kds-hue-leaf), var(--kds-hue-rose), var(--kds-hue-iris), var(--kds-hue-amber);
+}

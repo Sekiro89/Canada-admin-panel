@@ -1,0 +1,52 @@
+/* ============================================================
+   KDS v1.0 · tokens/brands/9180.css · © Khosha Systems. All rights reserved.
+   ------------------------------------------------------------
+   9180.tech — saffron triangle, cobalt slash, Vidhana-Soudha green, amber dot,
+   ink. Light is the brand default.
+   Provenance: sampled from the 9180 logo and codified in the app's globals.css
+   (":root brand overrides" block); captured into KDS on 2026-09-15.
+   Confirmed by: Ankit (9180 build, 2026-06).
+
+   Theme: the app is light by default. To ignore the OS entirely put
+   data-kds-theme="light" on <html>; leave it off to follow the OS. A dark
+   "spotlight" band (the hero) is a nested element with data-kds-theme="dark".
+
+   Fonts: Next.js next/font exposes --font-geist-sans / --font-geist-mono; the
+   stacks below read them with a "Geist" fallback, then the system stack. For a
+   non-Next host, self-host Geist and uncomment the @font-face stub.
+   ============================================================ */
+/*
+@font-face {
+  font-family: "Geist";
+  src: url("./fonts/Geist-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+}
+*/
+:root {
+  --kds-font-sans: var(--font-geist-sans, "Geist"), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --kds-font-mono: var(--font-geist-mono, "Geist Mono"), ui-monospace, "SF Mono", Menlo, monospace;
+  --kds-font-display: var(--kds-font-sans);
+
+  /* hues sampled from the logo */
+  --kds-hue-flame: #ec681c;   /* saffron */
+  --kds-hue-sky: #0c64dc;     /* cobalt */
+  --kds-hue-leaf: #207424;    /* green */
+  --kds-hue-amber: #f8b014;   /* amber dot */
+  --kds-hue-ink: #12181e;     /* logo ink */
+
+  --kds-brand: #ec681c;
+  --kds-brand-fg: #ffffff;    /* the live brand's choice: 3.2:1 — fine for ≥ 18px/bold CTA text only.
+                                 Use var(--kds-ink) (5.4:1) for small text on saffron. */
+  --kds-brand-soft: color-mix(in srgb, var(--kds-brand) 10%, transparent);
+  --kds-accent: light-dark(#0c64dc, #5b9bff);          /* cobalt 5.4:1 on white; lifted for dark (cobalt as-is is 3.4:1) */
+  --kds-accent-fg: light-dark(#ffffff, #12181e);
+  --kds-positive: light-dark(#207424, #5fcf66);        /* 5.9:1 on white; lifted for dark (3.1:1 as-is) */
+  --kds-positive-fg: light-dark(#ffffff, #12181e);
+  --kds-warning: light-dark(color-mix(in srgb, var(--kds-hue-amber) 48%, var(--kds-hue-ink)), var(--kds-hue-amber));
+  --kds-focus-ring: var(--kds-accent);
+  --kds-ink: #12181e;
+
+  /* legacy alias the 9180 app reads (not a KDS contract token) */
+  --kds-amber: var(--kds-hue-amber);
+}

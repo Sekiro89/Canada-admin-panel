@@ -1,0 +1,32 @@
+/* KDS v1.0 · tokens/philosophies/stage.css · © Khosha Systems. All rights reserved.
+   School of Calm · STAGE — one hero element lit, everything else dimmed; theatrical depth, amber spotlight.
+   Suits: product demos, keynotes, spotlight launches, walkthrough overlays, kiosk attract loops. Motion: sequence() choreography, one actor at a time. */
+[data-kds-philosophy="stage"] {
+  --kds-accent: light-dark(color-mix(in srgb, var(--kds-hue-amber) 48%, var(--kds-hue-ink)), var(--kds-hue-amber));
+  --kds-accent-fg: light-dark(#ffffff, var(--kds-hue-ink));
+  --kds-brand: var(--kds-accent);
+  --kds-brand-fg: var(--kds-accent-fg);
+  --kds-brand-soft: var(--kds-accent-soft);
+  --kds-phil-dim: 0.42;                          /* opacity for everything that is not the actor */
+  --kds-phil-spot: radial-gradient(ellipse 60% 50% at 50% 35%, color-mix(in srgb, var(--kds-accent) 16%, transparent), transparent 70%);
+  --kds-bg-gradient: var(--kds-phil-spot);
+  --kds-scrim: color-mix(in srgb, var(--kds-n0) 82%, transparent);
+  --kds-font-display: var(--kds-font-sans);
+  --kds-weight-bold: 700;
+  --kds-text-display: clamp(2.5rem, 1.6rem + 4.5vw, 5rem);
+  --kds-leading-display: 1.02;
+  --kds-tracking-tight: -0.03em;
+  --kds-tracking-wide: 0.1em;
+  --kds-sp-unit: 0.25rem;
+  --kds-gutter: clamp(1.5rem, 6vw, 5rem);
+  --kds-section: clamp(4rem, 12vw, 10rem);
+  --kds-container: 1280px;
+  --kds-radius-xs: 6px; --kds-radius-sm: 10px; --kds-radius-md: 14px; --kds-radius-lg: 20px; --kds-radius-xl: 28px;
+  --kds-shadow-1: 0 2px 6px color-mix(in srgb, var(--kds-n0) 20%, transparent);
+  --kds-shadow-2: 0 16px 48px color-mix(in srgb, var(--kds-n0) 30%, transparent);
+  --kds-shadow-3: 0 40px 120px color-mix(in srgb, var(--kds-n0) 45%, transparent), 0 0 0 1px color-mix(in srgb, var(--kds-accent) 20%, transparent);
+  --kds-dur-fast: 140ms; --kds-dur-base: 260ms; --kds-dur-slow: 480ms; --kds-dur-grand: 900ms;
+  --kds-ease-standard: var(--kds-ease-emphasized);
+  --kds-ease-enter: var(--kds-ease-emphasized);
+  --kds-motion-scale: 1;
+}

@@ -144,6 +144,20 @@ async function load() {
 }
 
 const page = fs.readFileSync(path.join(__dirname, 'index.html'));
+const PUBLIC = path.join(__dirname, 'public');
+const TYPES = { '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.svg': 'image/svg+xml' };
+
+// Static files: /app.css, /app.js and the vendored design system under /kds/. Resolved inside
+// public/ only; anything that escapes it, or has another extension, is a 404.
+function serveStatic(req, res, headers) {
+  const rel = decodeURIComponent(req.url.split('?')[0]);
+  const file = path.join(PUBLIC, rel);
+  const type = TYPES[path.extname(file)];
+  if (!type || !file.startsWith(PUBLIC + path.sep) || !fs.existsSync(file) || !fs.statSync(file).isFile()) return false;
+  res.writeHead(200, { ...headers, 'Content-Type': type, 'Cache-Control': 'no-cache' });
+  fs.createReadStream(file).pipe(res);
+  return true;
+}
 
 http.createServer(async (req, res) => {
   const headers = { 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex, nofollow' };
@@ -159,7 +173,7 @@ http.createServer(async (req, res) => {
   } else if (req.url === '/' || req.url.startsWith('/?')) {
     res.writeHead(200, { ...headers, 'Content-Type': 'text/html; charset=utf-8' });
     res.end(page);
-  } else {
+  } else if (!serveStatic(req, res, headers)) {
     res.writeHead(404, headers); res.end('not found');
   }
 }).listen(Number(process.env.PORT) || 3950, '127.0.0.1', () => console.log('ads-dashboard on', process.env.PORT));

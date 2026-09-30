@@ -1,0 +1,87 @@
+/* KDS v1.0 · brand.css · © Khosha Systems. All rights reserved. */
+/* source: tokens/brands/_template.css (KDS 1.0.0, 2026-09-30) — edit freely, install never overwrites this file */
+/* ============================================================
+   KDS v1.0 · tokens/brands/_template.css · © Khosha Systems. All rights reserved.
+   ------------------------------------------------------------
+   BRAND OVERRIDE TEMPLATE. Copy to <project>/brand.css, fill it in, and load
+   it AFTER tokens/kds.css and after any philosophy preset:
+
+     <link rel="stylesheet" href="/kds/tokens/kds.css">
+     <link rel="stylesheet" href="/kds/tokens/philosophies/verandah.css">
+     <link rel="stylesheet" href="/brand.css">
+
+   A brand file overrides TOKENS ONLY — never component rules, never raw hex
+   anywhere else in the project. Delete every line you do not need.
+
+   PROVENANCE (required by the brand-integrity protocol — never guess hex from memory)
+     Brand:           <Name>
+     Extracted from:  <url | brand-kit file | logo.svg> on <YYYY-MM-DD>
+     Method:          <brand kit | sampled live pages | logo vector fills>
+     Confirmed by:    <owner> on <YYYY-MM-DD>
+   ============================================================ */
+
+/* 1. FONTS (optional). KDS ships no web fonts. If the brand has one, self-host
+      the files next to this file — never @import an external URL. */
+/*
+@font-face {
+  font-family: "BrandSans";
+  src: url("./fonts/BrandSans-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+*/
+
+:root {
+  /* 2. FONT STACKS — always end with the system stack so text renders while the
+        webfont loads (or if it never does). */
+  /* --kds-font-sans: "BrandSans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; */
+  /* --kds-font-mono: "BrandMono", ui-monospace, "SF Mono", Menlo, monospace; */
+  /* --kds-font-display: "BrandDisplay", var(--kds-font-sans); */
+
+  /* 3. HUE PRIMITIVES — the cheapest re-brand. Every semantic colour (accent,
+        status colours, the 12% soft tints, and the light-theme darkened text
+        variants) re-derives from these in BOTH themes. */
+  /* --kds-hue-flame: #ff9933;   brand warm */
+  /* --kds-hue-sky:   #5b8cff;   interactive */
+  /* --kds-hue-leaf:  #2ecc71;   positive */
+  /* --kds-hue-rose:  #ff5470;   danger */
+  /* --kds-hue-amber: #ffc53d;   warning */
+  /* --kds-hue-iris:  #9d7bff;   info */
+  /* --kds-hue-teal:  #2bc4b6;   secondary / data */
+  /* --kds-hue-ink:   #07090d;   darkest logo ink */
+
+  /* 4. SEMANTIC OVERRIDES — only when the derived value is wrong for the brand.
+        A plain value applies to both themes. For a per-theme pair use
+        light-dark(light, dark): it follows the color-scheme set by the theme
+        blocks, so it works with the attribute AND the OS media query.
+        Limit: light-dark() inside a custom property resolves at the element
+        that declares it (:root), so it follows the <html> theme, not a nested
+        data-kds-theme band. For per-band brand colours re-declare the token
+        inside a [data-kds-theme="dark"] rule in this file. */
+  /* --kds-brand:      light-dark(#c4501a, #ff8a3d); */
+  /* --kds-brand-fg:   #ffffff;   must be ≥ 4.5:1 on --kds-brand (3:1 if only used at ≥ 18px/bold) */
+  /* --kds-accent:     light-dark(#0c64dc, #5b9bff);   ≥ 4.5:1 vs --kds-surface in each theme (it is link text) */
+  /* --kds-accent-fg:  light-dark(#ffffff, #07090d); */
+  /* --kds-positive:   light-dark(#1e7a47, #2ecc71); */
+  /* --kds-focus-ring: var(--kds-accent); */
+
+  /* 5. NEUTRALS — swap the whole ramp and both themes follow (n0 darkest → n10
+        lightest). Use --kds-w0…w10 for the built-in warm ramp, or your own 11 stops
+        with the same luminance steps (see references/tokens.md for the targets). */
+  /* --kds-n0: var(--kds-w0); … --kds-n10: var(--kds-w10); */
+
+  /* 6. SHAPE */
+  /* --kds-radius-xs: 3px; --kds-radius-sm: 6px; --kds-radius-md: 10px; --kds-radius-lg: 16px; --kds-radius-xl: 24px; */
+  /* --kds-border-w: 1px; */
+
+  /* 7. VOICE — type scale, weights, tracking, motion feel */
+  /* --kds-text-display: clamp(2.5rem, 1.6rem + 4vw, 4.5rem); */
+  /* --kds-weight-bold: 700; */
+  /* --kds-tracking-tight: -0.015em; */
+  /* --kds-dur-base: 200ms; --kds-ease-enter: cubic-bezier(0.16, 1, 0.3, 1); */
+}
+
+/* 8. VERIFY before shipping: accent, positive, danger and fg-muted each ≥ 4.5:1
+      against --kds-surface in both themes; --kds-border-strong ≥ 3:1. Run the
+      KDS check script (scripts/) or the contrast table method in references/tokens.md. */
