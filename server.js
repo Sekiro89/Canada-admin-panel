@@ -13,11 +13,7 @@ for (const line of fs.readFileSync(path.join(__dirname, '.env'), 'utf8').split('
   if (m && !process.env[m[1]]) process.env[m[1]] = m[2];
 }
 
-const PORTALS = [
-  { key: 'cc', name: 'Canada Careers', domain: 'canadacareers.jobs', db: 'cc_main' },
-  { key: 'ycc', name: 'Youth Careers', domain: 'youthfuturejobs.ca', db: 'ycc_main' },
-  { key: 'nwc', name: 'Newcomer Careers', domain: 'newcomer.work', db: 'nwc_main' },
-];
+const PORTALS = require('./portals').map((p) => ({ key: p.key, name: p.name, domain: p.domain, db: p.db }));
 for (const p of PORTALS) p.pool = new Pool({ database: p.db, max: 2 });
 
 // --- Classification rules ------------------------------------------------------------

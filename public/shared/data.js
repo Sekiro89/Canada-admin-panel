@@ -14,7 +14,7 @@ const DAY = 864e5;
 export const recent = (d, days) => Boolean(d) && Date.now() - new Date(d) < days * DAY;
 
 // ---------------------------------------------------------------- labels
-export const SHORT = { 'Canada Careers': 'Canada', 'Youth Careers': 'Youth', 'Newcomer Careers': 'Newcomer' };
+export const SHORT = { 'Canada Careers': 'Canada', 'Youth Careers': 'Youth', 'Newcomer Careers': 'Newcomer', 'Firstnation': 'Firstnation' };
 export const short = (portalName) => SHORT[portalName] || portalName;
 export const ORIGIN_LABEL = { real: 'Real', imported: 'Imported (BRC list)', jobbank: 'Job Bank', test: 'Test / demo' };
 export const KIND_LABEL = { real: 'Real', test: 'Test / demo', staff: 'Staff', import: 'Import account' };
