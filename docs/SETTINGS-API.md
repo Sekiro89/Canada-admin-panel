@@ -16,7 +16,7 @@ Secrets never come back to the browser: only masked values (`sk_live_•••�
 
 ## GET /api/settings  — fast, no Stripe calls
 ```json
-{ "portals": [ {
+{ "enabled": true, "portals": [ {
   "key": "nwc", "name": "Newcomer Careers", "domain": "newcomer.work",
   "liveMoney": false, "notes": ["…"],
   "billingMode": "stripe" | "sandbox",          // sandbox = checkouts are simulated
@@ -53,20 +53,22 @@ Body (send only the fields being changed; empty/omitted = leave as is):
 { "stripe_secret_key": "sk_test_…", "stripe_publishable_key": "pk_test_…",
   "stripe_webhook_secret": "whsec_…", "confirm": true }
 ```
-- `confirm: true` is REQUIRED when the portal has `liveMoney: true` or when the new secret key is a
-  live key (`sk_live_`/`rk_live_`). Without it → 409 `{ "error": …, "needsConfirm": true }`.
+- **Live-change password** (`password` in the body) is REQUIRED when the portal has `liveMoney: true`,
+  its current key is live, or the new secret key is live. Missing → 409 `{ error, needsPassword: true }`;
+  wrong → 403; five wrong tries from one address → 429 for 15 minutes. The password is separate from
+  the login; only its scrypt hash is stored (`LIVE_PASSWORD_HASH` in the dashboard .env).
 - Validation (400): secret `sk_(test|live)_…` or `rk_(test|live)_…`; publishable `pk_(test|live)_…`;
   webhook `whsec_…`; secret and publishable must be the same mode (both test or both live).
 - The secret key is tested against Stripe BEFORE saving; a key Stripe rejects is not saved (400).
 - Response: `{ "ok": true, "saved": ["stripe_secret_key", …], "portal": <same object as GET> }`
 
 ## POST /api/settings/:key/disconnect  — back to sandbox
-Body `{ "confirm": true }` (always required). Clears all three keys in the portal's database.
+Body `{ "confirm": true }`; on a live portal also `"password"` (same rule as above), otherwise 409 `needsConfirm`. Clears all three keys in the portal's database.
 If the portal's .env also has keys, those take over again — the response says so.
 Response: `{ "ok": true, "portal": <GET object>, "envFallback": false }`
 
 ## POST /api/settings/:key/webhook  — create this portal's webhook in its Stripe account
-Body `{}`. Creates `<publicUrl>/billing/webhook` with the 5 events and saves the signing secret
+Body `{}` (with a live key: `{ "password": … }`, else 409 `needsPassword`). Creates `<publicUrl>/billing/webhook` with the 5 events and saves the signing secret
 into the portal automatically. If the endpoint already exists it is NOT duplicated.
 ```json
 { "ok": true, "id": "we_…", "url": "…", "created": true, "secretSaved": true,
@@ -75,7 +77,7 @@ into the portal automatically. If the endpoint already exists it is NOT duplicat
 (The signing secret itself is never returned.)
 
 ## POST /api/settings/:key/prices  — create this portal's prices in its Stripe account
-Body `{}`. Idempotent.
+Body `{}` (with a live key: `{ "password": … }`). Idempotent.
 `{ "ok": true, "created": ["…"], "existing": ["…"], "error": null }`
 
 ## Audit

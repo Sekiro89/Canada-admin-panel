@@ -7,6 +7,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const { Pool } = require('pg');
+const settings = require('./settings');
 
 for (const line of fs.readFileSync(path.join(__dirname, '.env'), 'utf8').split('\n')) {
   const m = line.match(/^([A-Z_]+)=(.*)$/);
@@ -169,11 +170,14 @@ http.createServer(async (req, res) => {
       console.error(err);
       res.writeHead(500, headers); res.end('error');
     }
-  } else if (req.url === '/api/settings') {
-    // Payment settings are not switched on: changing live portals' Stripe keys from here awaits
-    // Ankit's approval (see docs/SETTINGS-API.md). The page shows a calm notice for enabled:false.
-    res.writeHead(200, { ...headers, 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ enabled: false }));
+  } else if (req.url.startsWith('/api/settings')) {
+    // Payment settings for every portal (docs/SETTINGS-API.md). Approved by Ankit 2026-10-07.
+    try {
+      if (!(await settings.handle(req, res))) { res.writeHead(404, headers); res.end('not found'); }
+    } catch (err) {
+      console.error('[settings]', err);
+      if (!res.headersSent) { res.writeHead(500, headers); res.end('error'); }
+    }
   } else if (req.url === '/' || req.url.startsWith('/?')) {
     res.writeHead(200, { ...headers, 'Content-Type': 'text/html; charset=utf-8' });
     res.end(page);

@@ -1,13 +1,13 @@
-/* Direction A — Settings view: Stripe per portal. Contract: docs/SETTINGS-API.md. `?mock=1` uses an inline fixture and never touches the network for POSTs. */
+/* Settings view: Stripe per portal, all connections made from here. Contract: docs/SETTINGS-API.md.
+   Anything live needs the separate live-change password; the server is the authority on when. */
 import { esc, day } from '/shared/data.js';
 
-const MOCK = new URLSearchParams(location.search).get('mock') === '1';
 const FIELDS = [
   { id: 'stripe_secret_key', label: 'Secret key', secret: true, name: 'secret key' },
   { id: 'stripe_publishable_key', label: 'Publishable key', secret: false, name: 'publishable key' },
   { id: 'stripe_webhook_secret', label: 'Webhook signing secret', secret: true, name: 'webhook signing secret' },
 ];
-const SOURCE = { db: 'saved here, encrypted in the portal', env: 'from the portal’s .env file', default: 'not set' };
+const SOURCE = { db: 'saved here, in the portal', env: 'from the portal’s .env file', default: 'not set' };
 const RX = {
   stripe_secret_key: /^(sk|rk)_(test|live)_[A-Za-z0-9]+$/,
   stripe_publishable_key: /^pk_(test|live)_[A-Za-z0-9]+$/,
@@ -30,11 +30,10 @@ const I = {
 let ROOT = null;
 let PORTALS = () => [];   // [{ name, domain }] from /api/data, for the fallback links
 const S = { loaded: false, loading: false, error: null, order: [], P: new Map() };
-// per portal: { p, check, busy: {}, msg: {}, confirm: null | { action, body } }
+// per portal: { p, check, busy: {}, msg: {}, confirm: null | { action, kind: 'password'|'domain', body, serverError } }
 
 // ---------------------------------------------------------------- transport
 async function getSettings() {
-  if (MOCK) { await wait(400); return structuredClone(FIXTURE); }
   const r = await fetch('/api/settings', { cache: 'no-store' });
   const d = await r.json().catch(() => ({}));
   if (!r.ok) throw Object.assign(new Error(d.error || `The server answered ${r.status}.`), { off: r.status === 404 });
@@ -42,7 +41,6 @@ async function getSettings() {
   return d;
 }
 async function post(key, action, body = {}) {
-  if (MOCK) return mockPost(key, action, body);
   try {
     const r = await fetch(`/api/settings/${encodeURIComponent(key)}/${action}`, {
       method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Dashboard': '1' }, body: JSON.stringify(body),
@@ -53,7 +51,6 @@ async function post(key, action, body = {}) {
     return { status: 0, ok: false, data: { error: `Could not reach the dashboard server (${e.message}).` } };
   }
 }
-const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // ---------------------------------------------------------------- public API
 export function openSettings(root, portals) {
@@ -91,8 +88,8 @@ async function load(quiet = false) {
 function renderAll() {
   if (!ROOT) return;
   const intro = `<p class="set__intro">Each portal has its own Stripe account. Keys are stored encrypted inside that portal,
-    changes take effect within a few seconds, and secret keys are never shown again after you save them.</p>`;
-  const mock = MOCK ? `<div class="notice notice--quiet" role="note">${I.info}<p><strong>Practice mode.</strong> This page is showing made-up settings; nothing you do here is sent to Stripe or the portals.</p></div>` : '';
+    changes take effect within a few seconds, and secret keys are never shown again after you save them.
+    Anything that touches live payments asks for the live-change password first.</p>`;
   if (S.error && !S.loaded) { ROOT.innerHTML = offHTML(); return; }
   const err = S.error ? `<div class="notice notice--bad" role="alert">${I.bad}<p><strong>Could not refresh the payment settings.</strong> ${esc(S.error.text)}</p>
     <button type="button" class="btn btn--quiet" data-act="reload">Try again</button></div>` : '';
@@ -101,18 +98,15 @@ function renderAll() {
     body = Array.from({ length: 4 }, () => `<div class="pf"><div class="pf__head"><span class="sk sk--line" style="width:40%"></span></div>
       <span class="sk sk--line"></span><span class="sk sk--line sk--short"></span></div>`).join('');
   } else body = S.order.map(sectionHTML).join('');
-  ROOT.innerHTML = `${intro}${mock}<div data-part="top-error">${err}</div><div class="pfs">${body}</div>`;
+  ROOT.innerHTML = `${intro}<div data-part="top-error">${err}</div><div class="pfs">${body}</div>`;
   if (S.loaded) S.order.forEach((k) => paint(k));
 }
 
-// Shown while the settings API is not switched on (404) or cannot be read: no forms, just where to go instead.
+// Shown when the payment settings cannot be loaded at all.
 function offHTML() {
-  const list = PORTALS();
-  return `<div class="notice notice--quiet" role="status">${I.info}<p><strong>Payment settings aren’t switched on yet.</strong>
-      Each portal’s Stripe keys are still managed in that portal’s own /admin/integrations page.</p></div>
-    ${S.error.text ? `<p class="muted small set__why">${esc(S.error.text)} <button type="button" class="linkbtn" data-act="reload">Try again</button></p>` : ''}
-    ${list.length ? `<ul class="offlinks">${list.map((p) => `<li><span>${esc(p.name)}</span>
-      <a class="m" href="https://${esc(p.domain)}/admin/integrations" target="_blank" rel="noopener">${esc(p.domain)}/admin/integrations</a></li>`).join('')}</ul>` : ''}`;
+  return `<div class="notice notice--bad" role="alert">${I.bad}<p><strong>The payment settings could not be loaded.</strong>
+      ${esc(S.error.text || '')}</p>
+    <button type="button" class="btn btn--quiet" data-act="reload">Try again</button></div>`;
 }
 
 function sectionHTML(key) {
@@ -160,6 +154,7 @@ function paint(key, parts) {
   }
   const save = el.querySelector('[data-act=save]');
   save.disabled = Boolean(st.busy.keys || st.confirm?.action === 'keys');
+  for (const a of ['webhook', 'prices']) { const b = el.querySelector(`[data-act=${a}]`); if (b && st.confirm?.action === a) b.disabled = true; }
   save.innerHTML = st.busy.keys ? `${I.spin}<span>Saving…</span>` : 'Save keys';
   save.toggleAttribute('aria-busy', Boolean(st.busy.keys));
 }
@@ -231,24 +226,31 @@ function keysMsg(st) {
   return m.ok ? `<p class="res res--ok">${I.ok}<span>${esc(m.text)}</span></p>` : `<div class="notice notice--bad" role="alert">${I.bad}<p>${esc(m.text)}</p></div>`;
 }
 
+const needsPw = (p) => Boolean(p.liveMoney || p.keyMode === 'live');
 function confirmBox(st, action) {
   const c = st.confirm;
   if (!c || c.action !== action) return '';
-  const p = st.p, k = esc(p.key);
-  const lead = action === 'disconnect'
-    ? `This turns off Stripe on ${esc(p.domain)}. Checkouts there will be simulated until new keys are saved.`
-    : p.liveMoney ? `This changes live payments on ${esc(p.domain)}.`
-    : `This switches ${esc(p.domain)} to live payments — real cards will be charged.`;
+  const p = st.p, k = esc(p.key), pw = c.kind === 'password';
+  const lead = {
+    disconnect: pw ? `This stops live payments on ${esc(p.domain)}. Checkouts there will be simulated until new keys are saved.`
+                   : `This turns off Stripe on ${esc(p.domain)}. Checkouts there will be simulated until new keys are saved.`,
+    keys: p.liveMoney || p.keyMode === 'live' ? `This changes live payments on ${esc(p.domain)}.` : `This switches ${esc(p.domain)} to live payments — real cards will be charged.`,
+    webhook: `This creates the webhook in the live Stripe account of ${esc(p.domain)}.`,
+    prices: `This creates prices in the live Stripe account of ${esc(p.domain)}.`,
+  }[action];
+  const go = { disconnect: ['Disconnect', 'Disconnecting…'], keys: ['Confirm and save', 'Saving…'], webhook: ['Confirm and create', 'Creating…'], prices: ['Confirm and create', 'Creating…'] }[action];
   return `<div class="confirm" role="group" aria-labelledby="${k}-${action}-cl">
-    <p id="${k}-${action}-cl"><strong>${lead}</strong> Type the domain to confirm.</p>
-    ${c.serverError ? `<p class="small muted">${esc(c.serverError)}</p>` : ''}
-    <label class="field"><span class="field__l">Domain</span>
-      <input data-confirm="${action}" autocomplete="off" spellcheck="false" autocapitalize="off" placeholder="${esc(p.domain)}"></label>
+    <p id="${k}-${action}-cl"><strong>${lead}</strong> ${pw ? 'Enter the live-change password to continue.' : 'Type the domain to confirm.'}</p>
+    ${c.serverError ? `<p class="small" role="alert">${esc(c.serverError)}</p>` : ''}
+    <label class="field"><span class="field__l">${pw ? 'Live-change password' : 'Domain'}</span>
+      <input data-confirm="${action}" ${pw ? 'type="password" autocomplete="off"' : `autocomplete="off" placeholder="${esc(p.domain)}"`} spellcheck="false" autocapitalize="off"></label>
     <div class="actions">
-      ${btn(`confirm-${action}`, action === 'disconnect' ? 'Disconnect' : 'Confirm and save', action === 'disconnect' ? 'Disconnecting…' : 'Saving…', { busy: st.busy[action], disabled: true, cls: 'btn--danger' })}
+      ${btn(`confirm-${action}`, go[0], go[1], { busy: st.busy[action], disabled: true, cls: 'btn--danger' })}
       <button type="button" class="btn btn--quiet" data-act="cancel">Cancel</button>
     </div></div>`;
 }
+const confirmReady = (st, input) => (st.confirm?.kind === 'password' ? input.value.length > 0 : input.value.trim().toLowerCase() === st.p.domain.toLowerCase());
+const confirmValue = (key, action) => sec(key).querySelector(`[data-confirm=${action}]`)?.value || '';
 
 function webhook(st) {
   const p = st.p, ev = p.webhookEvents || [];
@@ -262,7 +264,8 @@ function webhook(st) {
     <p class="small">Signing secret: ${whs?.set ? `saved <span class="muted">(${esc(SOURCE[whs.source] || whs.source)})</span>` : '<span class="bad">not saved yet</span>'}</p>
     <div class="actions">${btn('webhook', 'Create webhook in Stripe', 'Creating…', { busy: st.busy.webhook, disabled: !hasSecret(p) })}</div>
     ${hasSecret(p) ? '<p class="muted small">Creates the webhook in this portal’s Stripe account and saves its signing secret here. Safe to press again; it never makes a duplicate.</p>' : noSecret}
-    ${m ? (m.note ? line(true, esc(m.note)) : '') + (m.error ? `<div class="notice notice--bad" role="alert">${I.bad}<p>${esc(m.error)}</p></div>` : '') : ''}`;
+    ${m ? (m.note ? line(true, esc(m.note)) : '') + (m.error ? `<div class="notice notice--bad" role="alert">${I.bad}<p>${esc(m.error)}</p></div>` : '') : ''}
+    ${confirmBox(st, 'webhook')}`;
 }
 
 function prices(st) {
@@ -272,7 +275,8 @@ function prices(st) {
     ${hasSecret(p) ? '<p class="muted small">Makes sure this portal’s ad prices exist in its Stripe account. Safe to press again.</p>' : noSecret}
     ${m ? (m.created?.length ? line(true, `Created: ${list(m.created)}`) : '') + (m.existing?.length ? line(true, `Already there: ${list(m.existing)}`) : '')
       + (m.ok && !m.created?.length && !m.existing?.length ? line(true, 'Done.') : '')
-      + (m.error ? `<div class="notice notice--bad" role="alert">${I.bad}<p>${esc(m.error)}</p></div>` : '') : ''}`;
+      + (m.error ? `<div class="notice notice--bad" role="alert">${I.bad}<p>${esc(m.error)}</p></div>` : '') : ''}
+    ${confirmBox(st, 'prices')}`;
 }
 
 function disconnect(st) {
@@ -294,13 +298,20 @@ function wire() {
     const st = S.P.get(s.dataset.key);
     if (st.busy.keys) return;
     if (st.confirm?.action === 'keys') {   // Enter inside the confirmation box
-      const typed = s.querySelector('[data-confirm=keys]')?.value.trim().toLowerCase();
-      if (typed === st.p.domain.toLowerCase()) saveKeys(s.dataset.key, true);
+      const input = s.querySelector('[data-confirm=keys]');
+      if (input && confirmReady(st, input)) saveKeys(s.dataset.key, true);
       return;
     }
     saveKeys(s.dataset.key);
   });
   ROOT.addEventListener('input', onInput);
+  ROOT.addEventListener('keydown', (e) => {   // Enter in a confirm box outside the keys form
+    const t = e.target;
+    if (e.key !== 'Enter' || !t.dataset?.confirm || t.dataset.confirm === 'keys') return;
+    e.preventDefault();
+    const b = t.closest('.pf')?.querySelector(`[data-act="confirm-${t.dataset.confirm}"]`);
+    if (b && !b.disabled) b.click();
+  });
 }
 
 function onInput(e) {
@@ -309,7 +320,7 @@ function onInput(e) {
   if (t.dataset.confirm) {
     const st = S.P.get(s.dataset.key);
     const b = s.querySelector(`[data-act="confirm-${t.dataset.confirm}"]`);
-    if (b && !st.busy[t.dataset.confirm]) b.disabled = t.value.trim().toLowerCase() !== st.p.domain.toLowerCase();
+    if (b && !st.busy[t.dataset.confirm]) b.disabled = !confirmReady(st, t);
     return;
   }
   if (RX[t.name]) hint(s);
@@ -352,17 +363,19 @@ async function onClick(e) {
     setTimeout(() => { label.textContent = 'Copy'; }, 1600);
     return;
   }
-  if (act === 'cancel') { st.confirm = null; paint(key); s.querySelector('[data-act=save]')?.focus(); return; }
+  if (act === 'cancel') { const was = st.confirm?.action; st.confirm = null; paint(key); s.querySelector(`[data-act=${was === 'keys' ? 'save' : was || 'save'}]`)?.focus(); return; }
   if (act === 'check') return runCheck(key);
   if (act === 'webhook') return runSimple(key, 'webhook');
   if (act === 'prices') return runSimple(key, 'prices');
   if (act === 'disconnect') {
-    st.confirm = { action: 'disconnect' }; st.msg.disconnect = null; paint(key, ['disconnect']);
+    st.confirm = { action: 'disconnect', kind: needsPw(st.p) ? 'password' : 'domain' }; st.msg.disconnect = null; paint(key, ['disconnect']);
     s.querySelector('[data-confirm=disconnect]')?.focus();
     return;
   }
   if (act === 'confirm-keys') return saveKeys(key, true);
   if (act === 'confirm-disconnect') return runDisconnect(key);
+  if (act === 'confirm-webhook') return runSimple(key, 'webhook', true);
+  if (act === 'confirm-prices') return runSimple(key, 'prices', true);
 }
 
 async function runCheck(key) {
@@ -379,7 +392,7 @@ async function runCheck(key) {
 async function saveKeys(key, confirmed = false) {
   const st = S.P.get(key), s = sec(key);
   let body;
-  if (confirmed) body = { ...st.confirm.body, confirm: true };
+  if (confirmed) body = { ...st.confirm.body, confirm: true, ...(st.confirm.kind === 'password' ? { password: confirmValue(key, 'keys') } : {}) };
   else {
     body = {};
     for (const f of FIELDS) { const v = s.querySelector(`input[name=${f.id}]`).value.trim(); if (v) body[f.id] = v; }
@@ -389,8 +402,9 @@ async function saveKeys(key, confirmed = false) {
   paint(key, confirmed ? ['keys-confirm', 'keys-msg'] : ['keys-msg']);
   const r = await post(key, 'keys', body);
   st.busy.keys = false;
-  if (r.status === 409 && r.data.needsConfirm) {
-    st.confirm = { action: 'keys', body, serverError: r.data.error };
+  if (r.data.needsPassword || (r.status === 409 && r.data.needsConfirm)) {
+    const { confirm: _c, password: _p, ...plain } = body;
+    st.confirm = { action: 'keys', kind: r.data.needsPassword ? 'password' : 'domain', body: plain, serverError: confirmed ? r.data.error : null };
     paint(key, ['keys-confirm', 'keys-msg']);
     s.querySelector('[data-confirm=keys]')?.focus();
     return;
@@ -414,8 +428,15 @@ async function saveKeys(key, confirmed = false) {
 async function runDisconnect(key) {
   const st = S.P.get(key);
   st.busy.disconnect = true; paint(key, ['disconnect']);
-  const r = await post(key, 'disconnect', { confirm: true });
-  st.busy.disconnect = false; st.confirm = null;
+  const pw = st.confirm?.kind === 'password' ? confirmValue(key, 'disconnect') : undefined;
+  const r = await post(key, 'disconnect', { confirm: true, ...(pw !== undefined ? { password: pw } : {}) });
+  st.busy.disconnect = false;
+  if (r.data.needsPassword) {
+    st.confirm = { action: 'disconnect', kind: 'password', serverError: pw !== undefined ? r.data.error : null };
+    paint(key, ['disconnect']); sec(key).querySelector('[data-confirm=disconnect]')?.focus();
+    return;
+  }
+  st.confirm = null;
   if (r.ok) {
     if (r.data.portal) st.p = r.data.portal;
     st.check = null; st.msg.webhook = null; st.msg.prices = null;
@@ -429,78 +450,23 @@ async function runDisconnect(key) {
   }
 }
 
-async function runSimple(key, action) {
+async function runSimple(key, action, confirmed = false) {
   const st = S.P.get(key);
+  const body = confirmed ? { confirm: true, password: confirmValue(key, action) } : {};
   st.busy[action] = true; st.msg[action] = null; paint(key, [action]);
-  const r = await post(key, action, {});
+  const r = await post(key, action, body);
   st.busy[action] = false;
+  if (r.data.needsPassword) {
+    st.confirm = { action, kind: 'password', serverError: confirmed ? r.data.error : null };
+    paint(key, [action]); sec(key).querySelector(`[data-confirm=${action}]`)?.focus();
+    return;
+  }
+  st.confirm = null;
   st.msg[action] = r.ok ? r.data : { error: r.data.error || `That failed (${r.status}).` };
   if (r.ok && action === 'webhook') {
     // the response has no portal object; re-read it so "signing secret saved" is current
     try { const d = await getSettings(); const p = d.portals.find((x) => x.key === key); if (p) st.p = p; } catch { /* keep old view */ }
-    if (MOCK && r.data.secretSaved) st.p.keys.stripe_webhook_secret = { set: true, masked: 'whsec_••••Mk9Q', source: 'db' };
     paint(key);
   } else paint(key, [action]);
   sec(key).querySelector(`[data-act=${action}]`)?.focus();
-}
-
-// ---------------------------------------------------------------- mock (?mock=1 only)
-const EVENTS = ['checkout.session.completed', 'customer.subscription.updated', 'customer.subscription.deleted', 'invoice.paid', 'invoice.payment_failed'];
-const none = { set: false, masked: '', source: 'default' };
-const mk = (key, name, domain, extra) => ({
-  key, name, domain, liveMoney: false, notes: [], billingMode: 'sandbox', keyMode: null,
-  publicUrl: `https://${domain}`, webhookUrl: `https://${domain}/billing/webhook`, webhookEvents: EVENTS,
-  keys: { stripe_secret_key: none, stripe_publishable_key: none, stripe_webhook_secret: none }, updatedAt: null, error: null, ...extra,
-});
-const FIXTURE = { portals: [
-  mk('cc', 'Canada Careers', 'canadacareers.jobs', {
-    liveMoney: true, billingMode: 'stripe', keyMode: 'test', updatedAt: '2026-10-07T12:00:00Z',
-    notes: ['Real customers have paid on this portal. Changing its keys affects their subscriptions.'],
-    keys: { stripe_secret_key: { set: true, masked: 'sk_test_••••Ab12', source: 'db' },
-      stripe_publishable_key: { set: true, masked: 'pk_test_••••Cd34', source: 'db' },
-      stripe_webhook_secret: { set: true, masked: 'whsec_••••Ef56', source: 'env' } } }),
-  mk('ycc', 'Youth Careers', 'youthfuturejobs.ca'),
-  mk('nwc', 'Newcomer Careers', 'newcomer.work'),
-  mk('fn', 'Firstnation', 'firstnationsemployment.ca', { notes: ['This portal only has demo ads so far.'] }),
-] };
-const mask = (v) => `${v.match(/^[a-z]+_(?:(?:test|live)_)?/)[0]}••••${v.slice(-4)}`;
-async function mockPost(key, action, body) {
-  await wait(action === 'check' ? 2200 : 1100);
-  const p = FIXTURE.portals.find((x) => x.key === key);
-  const res = (status, data) => ({ status, ok: status < 400, data: structuredClone(data) });
-  const sk = p.keys.stripe_secret_key.set;
-  if (action === 'check') {
-    if (!sk) {
-      const error = 'No secret key is set for this portal, so Stripe cannot be reached.';
-      return res(200, { connection: { ok: false, mode: null, error }, webhook: { ok: false, exists: false, error }, prices: { ok: false, missing: [], error } });
-    }
-    return res(200, { connection: { ok: true, mode: p.keyMode, error: null, account: { id: 'acct_1MOCK', business_name: `${p.name} (practice)`, email: `billing@${p.domain}`, country: 'CA', default_currency: 'cad', charges_enabled: true, livemode: p.keyMode === 'live' } },
-      webhook: { ok: true, exists: true, id: 'we_1MOCK', status: 'enabled', url: p.webhookUrl, missingEvents: [], secretSaved: p.keys.stripe_webhook_secret.set, error: null },
-      prices: { ok: false, missing: [`${key}_employer_monthly`], error: null } });
-  }
-  if (action === 'keys') {
-    const s = body.stripe_secret_key, pk = body.stripe_publishable_key, wh = body.stripe_webhook_secret;
-    if (s && !RX.stripe_secret_key.test(s)) return res(400, { error: 'That secret key is not in the right format. It should start with sk_test_, sk_live_, rk_test_ or rk_live_.' });
-    if (pk && !RX.stripe_publishable_key.test(pk)) return res(400, { error: 'That publishable key is not in the right format. It should start with pk_test_ or pk_live_.' });
-    if (wh && !RX.stripe_webhook_secret.test(wh)) return res(400, { error: 'That webhook signing secret should start with whsec_.' });
-    if (s && pk && modeOf(s) !== modeOf(pk)) return res(400, { error: 'The secret key and publishable key must both be test keys or both be live keys.' });
-    if ((p.liveMoney || modeOf(s || '') === 'live') && !body.confirm) return res(409, { error: 'This portal takes real payments, so this change needs confirming.', needsConfirm: true });
-    const saved = [];
-    for (const f of FIELDS) if (body[f.id]) { p.keys[f.id] = { set: true, masked: mask(body[f.id]), source: 'db' }; saved.push(f.id); }
-    if (s) { p.billingMode = 'stripe'; p.keyMode = modeOf(s); }
-    p.updatedAt = new Date().toISOString();
-    return res(200, { ok: true, saved, portal: p });
-  }
-  if (action === 'disconnect') {
-    for (const f of FIELDS) p.keys[f.id] = none;
-    Object.assign(p, { billingMode: 'sandbox', keyMode: null, updatedAt: new Date().toISOString() });
-    return res(200, { ok: true, portal: p, envFallback: false });
-  }
-  if (!sk) return res(400, { error: 'No secret key is set for this portal.' });
-  if (action === 'webhook') {
-    p.keys.stripe_webhook_secret = { set: true, masked: 'whsec_••••Mk9Q', source: 'db' };
-    return res(200, { ok: true, id: 'we_1MOCK', url: p.webhookUrl, created: true, secretSaved: true, events: EVENTS, note: 'Created endpoint we_1MOCK. The signing secret has been saved into the portal.', error: null });
-  }
-  if (action === 'prices') return res(200, { ok: true, created: [`${key}_employer_monthly`], existing: [`${key}_single_ad`], error: null });
-  return res(404, { error: 'Unknown action.' });
 }

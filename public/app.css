@@ -318,15 +318,11 @@ th[aria-sort="ascending"] .icon--sort { transform: scaleY(-1); }
 
 /* ------------------------------------------------------------ settings (payment gateways) */
 .set__intro { color: var(--ink-2); max-width: 68ch; margin: var(--s2) 0 var(--s5); }
-.set__why { margin-top: var(--s3); }
 .small { font-size: var(--t-s); }
 .bad { color: var(--bad); }
 .notice--quiet { background: var(--layer); color: var(--ink-3); border: 0; }
 .notice--quiet p { color: var(--ink-2); }
 .linkbtn { border: 0; background: none; padding: 0; color: var(--accent); font: inherit; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
-.offlinks { list-style: none; margin: var(--s5) 0 0; padding: 0; border-top: 1px solid var(--ink); }
-.offlinks li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--s1) var(--s4); padding-block: var(--s3); border-bottom: 1px solid var(--line); }
-.offlinks a { overflow-wrap: anywhere; }
 
 .pfs { display: grid; }
 .pf { padding-block: var(--s6) var(--s5); border-top: 1px solid var(--ink); }
