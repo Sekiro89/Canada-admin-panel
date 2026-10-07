@@ -28,6 +28,7 @@
     <button type="button" role="tab" class="tab" id="tab-overview" aria-controls="panel-overview" data-view="overview">Overview</button>
     <button type="button" role="tab" class="tab" id="tab-people" aria-controls="panel-people" data-view="people">People <span class="tab__n" id="nPeople"></span></button>
     <button type="button" role="tab" class="tab" id="tab-ads" aria-controls="panel-ads" data-view="ads">Ads <span class="tab__n" id="nAds"></span></button>
+    <button type="button" role="tab" class="tab" id="tab-settings" aria-controls="panel-settings" data-view="settings">Settings</button>
   </nav>
 </header>
 
@@ -48,12 +49,12 @@
     <div class="grid">
       <section class="block block--wide" aria-labelledby="h-compare">
         <h2 id="h-compare">By portal</h2>
-        <div class="scroll"><table class="t t--compare" id="compare"><tbody><tr><td><span class="sk sk--block"></span></td></tr></tbody></table></div>
+        <div class="scroll"><table class="t t--compare t--grid" id="compare" role="table" aria-labelledby="h-compare"><tbody><tr><td><span class="sk sk--block"></span></td></tr></tbody></table></div>
       </section>
       <div class="block block--side">
         <section aria-labelledby="h-month">
           <h2 id="h-month">Card money by month</h2>
-          <table class="t t--month" id="monthly"><tbody><tr><td><span class="sk sk--line"></span></td></tr></tbody></table>
+          <table class="t t--month" id="monthly" role="table" aria-labelledby="h-month"><tbody><tr><td><span class="sk sk--line"></span></td></tr></tbody></table>
         </section>
         <section aria-labelledby="h-imported" class="later">
           <h2 id="h-imported">Imported &amp; test data</h2>
@@ -121,6 +122,11 @@
     <p class="summary" id="aSummary" aria-live="polite"></p>
     <div class="list" id="aList"></div>
     <button type="button" class="btn btn--more" id="more" hidden></button>
+  </section>
+
+  <!-- ============================================================ settings -->
+  <section role="tabpanel" id="panel-settings" aria-labelledby="tab-settings" class="view" tabindex="-1" hidden>
+    <div id="settingsRoot"></div>
   </section>
 </main>
 </body>

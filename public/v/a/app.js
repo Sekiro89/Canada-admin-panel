@@ -4,11 +4,12 @@ import {
   filterAds, filterPeople, adUrl, money, num, plural, day, esc, short,
   ORIGIN_LABEL, KIND_LABEL, ROLE_LABEL, STATUS_LABEL, STATUS_TONE, ORIGIN_TONE, KIND_TONE,
 } from '/shared/data.js';
+import { openSettings, reloadSettings, settingsDataReady } from './settings.js';
 
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => [...document.querySelectorAll(s)];
 const PAGE = 60;
-const VIEWS = ['overview', 'people', 'ads'];
+const VIEWS = ['overview', 'people', 'ads', 'settings'];
 
 let DATA = null;
 let shown = PAGE;
@@ -32,12 +33,13 @@ const clock = (d) => new Date(d).toLocaleTimeString('en-CA', { hour: '2-digit', 
 function renderOverview() {
   const d = DATA, t = realStats(d.ads, d.people);
 
+  // Every clause must be literally true: postedAd counts accounts, so the sentence speaks of ads.
   const first = t.stripe
     ? `${money(t.stripe)} received from ${plural(t.stripeN, 'card payment')}.`
     : 'No card money received yet.';
-  const second = t.postedAd
-    ? `${plural(t.postedAd, 'real person', 'real people')} ${t.postedAd === 1 ? 'has' : 'have'} posted ${plural(t.ads, 'ad')}.`
-    : 'No real person has posted an ad yet.';
+  const second = t.ads
+    ? `${plural(t.ads, 'ad')} posted by real people, ${t.activeAds === t.ads ? (t.ads === 1 ? 'and it is' : 'all') : t.activeAds ? num(t.activeAds) : 'none'} active now.`
+    : 'No ads posted by real people yet.';
   $('#lede').innerHTML = `<span class="lede__a">${esc(first)}</span> <span class="lede__b">${esc(second)}</span>`;
 
   const fact = (label, value, sub) => `<div><dt>${label}</dt><dd>${mono(value)}${sub ? `<span class="facts__sub">${sub}</span>` : ''}</dd></div>`;
@@ -52,29 +54,35 @@ function renderOverview() {
   $('#alerts').innerHTML = alerts(d).map((a) =>
     `<div class="notice notice--${a.tone}" role="status">${ICON[a.tone] || ICON.warn}<p><strong>${esc(a.title)}.</strong> ${esc(a.body)}</p></div>`).join('');
 
-  // Portal comparison
+  // Portal comparison. Explicit ARIA roles because phones restyle rows as grids (label above, figures below).
   const per = perPortal(d);
   const cols = per.length;
-  const head = `<thead><tr><th scope="col" class="t__label"><span class="vh">Measure</span></th>${per.map(({ portal }) =>
-    `<th scope="col" class="n">${esc(short(portal.name))}</th>`).join('')}<th scope="col" class="n t__total">Total</th></tr></thead>`;
-  const group = (label) => `<tr class="t__group"><th scope="rowgroup" colspan="${cols + 2}">${label}</th></tr>`;
+  const compare = $('#compare');
+  compare.style.setProperty('--cols', cols);
+  const head = `<thead role="rowgroup"><tr role="row"><th role="columnheader" scope="col" class="t__label"><span class="vh">Measure</span></th>${per.map(({ portal }) =>
+    `<th role="columnheader" scope="col" class="n">${esc(short(portal.name))}</th>`).join('')}<th role="columnheader" scope="col" class="n t__total">Total</th></tr></thead>`;
+  const group = (label) => `<tr role="row" class="t__group"><th role="rowheader" scope="rowgroup" colspan="${cols + 2}">${label}</th></tr>`;
   const row = (r) => {
-    const cell = (v, extra = '') => `<td class="n m${extra}${r.flag && v ? ' flag' : ''}">${z(v, esc(fmt(r.format, v)))}</td>`;
-    return `<tr class="${r.emphasis ? 'em' : ''}${r.group === 'excluded' ? ' ex' : ''}"><th scope="row" class="t__label">${esc(r.label)}</th>${
-      per.map(({ stats }) => cell(stats[r.key])).join('')}${cell(t[r.key], ' t__total')}</tr>`;
+    const cell = (v, extra = '', name = '') => `<td role="cell" class="n m${extra}${r.flag && v ? ' flag' : ''}"${name ? ` data-col="${esc(name)}"` : ''}>${z(v, esc(fmt(r.format, v)))}</td>`;
+    return `<tr role="row" class="${r.emphasis ? 'em' : ''}${r.group === 'excluded' ? ' ex' : ''}"><th role="rowheader" scope="row" class="t__label">${esc(r.label)}</th>${
+      per.map(({ portal, stats }) => cell(stats[r.key], '', short(portal.name))).join('')}${cell(t[r.key], ' t__total', 'Total')}</tr>`;
   };
-  $('#compare').innerHTML = head + '<tbody>' +
+  compare.innerHTML = head + '<tbody role="rowgroup">' +
     group('Real activity') + COMPARE_ROWS.filter((r) => r.group === 'real').map(row).join('') +
     group('Imported &amp; test — excluded above') + COMPARE_ROWS.filter((r) => r.group === 'excluded').map(row).join('') +
     '</tbody>';
 
-  // Money by month
+  // Money by month (only portals that have taken card money; a Total column once there are two or more)
   const mo = monthly(d);
-  $('#monthly').innerHTML = mo.rows.length
-    ? `<thead><tr><th scope="col">Month</th>${mo.portals.map((p) => `<th scope="col" class="n">${esc(short(p.name))}</th>`).join('')}${
-      mo.portals.length > 1 ? '<th scope="col" class="n">Total</th>' : ''}</tr></thead><tbody>${mo.rows.map((r) =>
-      `<tr><th scope="row" class="m">${esc(r.month)}</th>${r.cells.map((c) => `<td class="n m">${c ? money(c) : dash}</td>`).join('')}${
-        mo.portals.length > 1 ? `<td class="n m em">${money(r.total)}</td>` : ''}</tr>`).join('')}</tbody>`
+  const withTotal = mo.portals.length > 1;
+  const mt = $('#monthly');
+  mt.classList.toggle('t--grid', mo.portals.length + (withTotal ? 1 : 0) >= 3);
+  mt.style.setProperty('--cols', mo.portals.length + (withTotal ? 1 : 0));
+  mt.innerHTML = mo.rows.length
+    ? `<thead role="rowgroup"><tr role="row"><th role="columnheader" scope="col" class="t__label">Month</th>${mo.portals.map((p) => `<th role="columnheader" scope="col" class="n">${esc(short(p.name))}</th>`).join('')}${
+      withTotal ? '<th role="columnheader" scope="col" class="n">Total</th>' : ''}</tr></thead><tbody role="rowgroup">${mo.rows.map((r) =>
+      `<tr role="row"><th role="rowheader" scope="row" class="m t__label">${esc(r.month)}</th>${r.cells.map((c) => `<td role="cell" class="n m">${c ? money(c) : dash}</td>`).join('')}${
+        withTotal ? `<td role="cell" class="n m em">${money(r.total)}</td>` : ''}</tr>`).join('')}</tbody>`
     : '<tbody><tr><td class="empty-inline">No card payments yet. Months appear here once Stripe records one.</td></tr></tbody>';
 
   $('#imported').innerHTML = importedFacts(d).map((f) =>
@@ -214,6 +222,7 @@ function show(view, focus = false) {
     $(`#panel-${v}`).hidden = !on;
   }
   if (focus) $(`#tab-${view}`).focus();
+  if (view === 'settings') openSettings($('#settingsRoot'), () => DATA?.portals || []);
   if (location.hash.slice(1) !== view) history.replaceState(null, '', `#${view}`);
 }
 
@@ -285,6 +294,7 @@ async function load() {
     $('#stamp').innerHTML = `Updated ${mono(clock(DATA.generatedAt))}`;
     $('#fatal').innerHTML = '';
     renderOverview(); renderPeople(); renderAds();
+    settingsDataReady();
   } catch (err) {
     $('#fatal').innerHTML = `<div class="notice notice--bad" role="alert">${ICON.bad}<p><strong>Could not load the data${DATA ? ' — showing the last copy' : ''}.</strong> ${esc(err.message || err)}.</p>
       <button type="button" class="btn btn--quiet" id="retry">Try again</button></div>`;
@@ -295,7 +305,7 @@ async function load() {
     btn.disabled = false; btn.removeAttribute('aria-busy'); btn.querySelector('.btn__label').textContent = 'Refresh';
   }
 }
-$('#refresh').addEventListener('click', load);
+$('#refresh').addEventListener('click', () => { load(); reloadSettings(); });
 
 show(location.hash.slice(1));
 skeletonLists();
