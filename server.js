@@ -1,4 +1,4 @@
-// Ads dashboard — read-only view of ads, people and payments across the three portals.
+// Ads dashboard — read-only view of ads, people and payments across the portals in portals.js.
 // Listens on 127.0.0.1 only; Caddy fronts it with HTTPS + basic auth.
 //
 // The one place that decides what is "real" vs imported vs test. The page only displays
@@ -139,14 +139,13 @@ async function load() {
   return out;
 }
 
-const page = fs.readFileSync(path.join(__dirname, 'index.html'));
+const page = fs.readFileSync(path.join(__dirname, 'public', 'index.html'));
 const PUBLIC = path.join(__dirname, 'public');
 const TYPES = { '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.svg': 'image/svg+xml',
   '.woff2': 'font/woff2', '.html': 'text/html; charset=utf-8' };
 
-// Static files: /app.css, /app.js, /shared/, /fonts/, the vendored design system under /kds/ and
-// design previews under /v/<name>/ (a trailing slash serves that folder's index.html). Resolved
-// inside public/ only; anything that escapes it, or has another extension, is a 404.
+// Static files under public/ (/app.css, /app.js, /settings.js, /shared/, /fonts/). Resolved inside
+// public/ only; anything that escapes it, or has another extension, is a 404.
 function serveStatic(req, res, headers) {
   let rel;
   try { rel = decodeURIComponent(req.url.split('?')[0]); } catch { return false; }
@@ -170,6 +169,11 @@ http.createServer(async (req, res) => {
       console.error(err);
       res.writeHead(500, headers); res.end('error');
     }
+  } else if (req.url === '/api/settings') {
+    // Payment settings are not switched on: changing live portals' Stripe keys from here awaits
+    // Ankit's approval (see docs/SETTINGS-API.md). The page shows a calm notice for enabled:false.
+    res.writeHead(200, { ...headers, 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ enabled: false }));
   } else if (req.url === '/' || req.url.startsWith('/?')) {
     res.writeHead(200, { ...headers, 'Content-Type': 'text/html; charset=utf-8' });
     res.end(page);
