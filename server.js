@@ -8,6 +8,7 @@ const fs = require('fs');
 const path = require('path');
 const { Pool } = require('pg');
 const settings = require('./settings');
+const pricing = require('./pricing');
 
 for (const line of fs.readFileSync(path.join(__dirname, '.env'), 'utf8').split('\n')) {
   const m = line.match(/^([A-Z_]+)=(.*)$/);
@@ -176,6 +177,14 @@ http.createServer(async (req, res) => {
       if (!(await settings.handle(req, res))) { res.writeHead(404, headers); res.end('not found'); }
     } catch (err) {
       console.error('[settings]', err);
+      if (!res.headersSent) { res.writeHead(500, headers); res.end('error'); }
+    }
+  } else if (req.url.startsWith('/api/pricing')) {
+    // Pricing plans per portal (pricing.js; contract ops/briefs/2026-10-16-brc-jobs-pricing.md §3).
+    try {
+      if (!(await pricing.handle(req, res))) { res.writeHead(404, headers); res.end('not found'); }
+    } catch (err) {
+      console.error('[pricing]', err);
       if (!res.headersSent) { res.writeHead(500, headers); res.end('error'); }
     }
   } else if (req.url === '/' || req.url.startsWith('/?')) {

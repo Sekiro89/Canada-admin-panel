@@ -404,3 +404,23 @@ th[aria-sort="ascending"] .icon--sort { transform: scaleY(-1); }
 .tabs { gap: var(--s5); }
 @media (max-width: 400px) { .tabs { gap: var(--s4); } }
 .set__intro + .notice { margin-bottom: var(--s5); }
+
+/* ---------------------------------------------------------------- pricing view */
+.pr__role { margin: var(--s5) 0 var(--s2); font-size: var(--t-m); font-weight: 600; }
+.t--plans td, .t--plans th { vertical-align: top; }
+.t--plans tr.off th, .t--plans tr.off td { color: var(--ink-3); }
+.t--plans .acts { white-space: nowrap; text-align: right; }
+.t--plans .acts .btn { margin-left: var(--s1); }
+.tag { display: inline-block; margin-left: var(--s1); padding: 0 6px; border: 1px solid var(--line-2); border-radius: 4px; font-size: var(--t-xs); color: var(--ink-2); vertical-align: 1px; }
+.tag--off { color: var(--ink-3); }
+.pr__form { margin: var(--s2) 0 var(--s4); padding: var(--s4); background: var(--fill); border-radius: var(--r); }
+.pr__grid { display: grid; gap: var(--s3); grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); margin-bottom: var(--s3); }
+.check { display: flex; align-items: center; gap: var(--s2); font-size: var(--t-s); min-height: 40px; }
+@media (max-width: 720px) {
+  .t--plans thead { display: none; }
+  .t--plans tr { display: grid; grid-template-columns: 1fr auto; gap: 2px var(--s3); padding: var(--s3) 0; border-bottom: 1px solid var(--line); }
+  .t--plans th, .t--plans td { border: 0; padding: 0; }
+  .t--plans td.n { text-align: right; }
+  .t--plans .acts { grid-column: 1 / -1; text-align: left; padding-top: var(--s2); }
+  .t--plans .acts .btn { margin: 0 var(--s1) 0 0; }
+}

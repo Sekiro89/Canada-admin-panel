@@ -28,6 +28,7 @@
     <button type="button" role="tab" class="tab" id="tab-overview" aria-controls="panel-overview" data-view="overview">Overview</button>
     <button type="button" role="tab" class="tab" id="tab-people" aria-controls="panel-people" data-view="people">People <span class="tab__n" id="nPeople"></span></button>
     <button type="button" role="tab" class="tab" id="tab-ads" aria-controls="panel-ads" data-view="ads">Ads <span class="tab__n" id="nAds"></span></button>
+    <button type="button" role="tab" class="tab" id="tab-pricing" aria-controls="panel-pricing" data-view="pricing">Pricing</button>
     <button type="button" role="tab" class="tab" id="tab-settings" aria-controls="panel-settings" data-view="settings">Settings</button>
   </nav>
 </header>
@@ -122,6 +123,11 @@
     <p class="summary" id="aSummary" aria-live="polite"></p>
     <div class="list" id="aList"></div>
     <button type="button" class="btn btn--more" id="more" hidden></button>
+  </section>
+
+  <!-- ============================================================ pricing -->
+  <section role="tabpanel" id="panel-pricing" aria-labelledby="tab-pricing" class="view" tabindex="-1" hidden>
+    <div id="pricingRoot"></div>
   </section>
 
   <!-- ============================================================ settings -->

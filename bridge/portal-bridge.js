@@ -95,7 +95,32 @@ async function prices() {
   return { ok: !!r.ok, created: r.created || [], existing: r.existing || [], error: r.error || null };
 }
 
-const ACTIONS = { status, check, testKey, save, clear, webhook, prices };
+// ---------------------------------------------------------------- pricing plans (portal's own lib/plans.js)
+// Contract: /root/projects/ops/briefs/2026-10-16-brc-jobs-pricing.md §3. A portal that has not shipped lib/plans.js yet
+// answers { available: false } instead of failing, so the dashboard can say "not installed on this portal yet".
+function plansLib() {
+  try { return require(path.join(root, 'lib/plans')); }
+  catch (e) { if (e.code === 'MODULE_NOT_FOUND' && /lib[\\/]plans/.test(e.message)) return null; throw e; }
+}
+async function plansList() {
+  const P = plansLib();
+  if (!P) return { available: false, plans: [] };
+  return { available: true, plans: await P.listPlans() };
+}
+async function planSave({ plan }) {
+  const P = plansLib(); if (!P) throw new Error('Pricing plans are not installed on this portal yet.');
+  return { plan: await P.savePlan(plan) };
+}
+async function planActive({ id, active }) {
+  const P = plansLib(); if (!P) throw new Error('Pricing plans are not installed on this portal yet.');
+  return { plan: await P.setActive(id, !!active) };
+}
+async function planOffer({ id, offer }) {
+  const P = plansLib(); if (!P) throw new Error('Pricing plans are not installed on this portal yet.');
+  return { plan: await P.setOffer(id, offer || {}) };
+}
+
+const ACTIONS = { status, check, testKey, save, clear, webhook, prices, plansList, planSave, planActive, planOffer };
 
 let input = '';
 process.stdin.on('data', (c) => { input += c; });

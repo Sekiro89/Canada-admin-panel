@@ -5,11 +5,12 @@ import {
   ORIGIN_LABEL, KIND_LABEL, ROLE_LABEL, STATUS_LABEL, STATUS_TONE, ORIGIN_TONE, KIND_TONE,
 } from '/shared/data.js';
 import { openSettings, reloadSettings, settingsDataReady } from './settings.js';
+import { openPricing, reloadPricing } from './pricing.js';
 
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => [...document.querySelectorAll(s)];
 const PAGE = 60;
-const VIEWS = ['overview', 'people', 'ads', 'settings'];
+const VIEWS = ['overview', 'people', 'ads', 'pricing', 'settings'];
 
 let DATA = null;
 let shown = PAGE;
@@ -222,6 +223,7 @@ function show(view, focus = false) {
     $(`#panel-${v}`).hidden = !on;
   }
   if (focus) $(`#tab-${view}`).focus();
+  if (view === 'pricing') openPricing($('#pricingRoot'));
   if (view === 'settings') openSettings($('#settingsRoot'), () => DATA?.portals || []);
   if (location.hash.slice(1) !== view) history.replaceState(null, '', `#${view}`);
 }
@@ -305,7 +307,7 @@ async function load() {
     btn.disabled = false; btn.removeAttribute('aria-busy'); btn.querySelector('.btn__label').textContent = 'Refresh';
   }
 }
-$('#refresh').addEventListener('click', () => { load(); reloadSettings(); });
+$('#refresh').addEventListener('click', () => { load(); reloadSettings(); reloadPricing(); });
 
 show(location.hash.slice(1));
 skeletonLists();
