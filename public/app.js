@@ -1,6 +1,6 @@
 /* Direction A — Swiss monochrome. Rendering only: every number and rule comes from /shared/data.js. */
 import {
-  loadData, realStats, perPortal, alerts, monthly, importedFacts, COMPARE_ROWS, fmt,
+  loadData, realStats, perPortal, alerts, monthly, importedFacts, COMPARE_ROWS, fmt, acquisition, TRACKING_SINCE,
   filterAds, filterPeople, adUrl, money, num, plural, day, esc, short,
   ORIGIN_LABEL, KIND_LABEL, ROLE_LABEL, STATUS_LABEL, STATUS_TONE, ORIGIN_TONE, KIND_TONE,
 } from '/shared/data.js';
@@ -85,6 +85,15 @@ function renderOverview() {
       `<tr role="row"><th role="rowheader" scope="row" class="m t__label">${esc(r.month)}</th>${r.cells.map((c) => `<td role="cell" class="n m">${c ? money(c) : dash}</td>`).join('')}${
         withTotal ? `<td role="cell" class="n m em">${money(r.total)}</td>` : ''}</tr>`).join('')}</tbody>`
     : '<tbody><tr><td class="empty-inline">No card payments yet. Months appear here once Stripe records one.</td></tr></tbody>';
+
+  const acq = acquisition(d);
+  const kv = (rows) => `<dl class="kv">${rows.map(([k, n]) => `<div><dt>${esc(k)}</dt><dd>${mono(String(n))}</dd></div>`).join('')}</dl>`;
+  $('#acquisition').innerHTML = acq.total
+    ? `<p class="note">${acq.total} real ${acq.total === 1 ? 'person has' : 'people have'} signed up since tracking began on ${TRACKING_SINCE} (${acq.byPortal.filter((x) => x.n).map((x) => `${esc(x.name)} ${x.n}`).join(', ')}).</p>
+       <h3 class="kv__h">What they told us</h3>${kv(acq.heard)}
+       <h3 class="kv__h">Where their first visit came from</h3>${kv(acq.source)}
+       ${acq.others.length ? `<h3 class="kv__h">“Other” answers</h3><ul class="kv__list">${acq.others.map((o) => `<li>${esc(o.text)} <span class="kv__note">${esc(o.portal)}</span></li>`).join('')}</ul>` : ''}`
+    : `<p class="note">Tracking started on ${TRACKING_SINCE}. Every new sign-up on the four portals records how they heard about us and where their first visit came from; the first ones will appear here.</p>`;
 
   $('#imported').innerHTML = importedFacts(d).map((f) =>
     `<div><dt>${esc(f.label)}</dt><dd>${mono(esc(f.value))}${f.note ? ` <span class="kv__note">${esc(f.note)}</span>` : ''}</dd></div>`).join('');

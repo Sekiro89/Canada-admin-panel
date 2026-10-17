@@ -128,6 +128,24 @@ export function importedFacts(data) {
   ];
 }
 
+// How real people say they found us, and where their first visit came from (tracking started 2026-10-17).
+export const TRACKING_SINCE = '2026-10-17';
+export const HEARD_LABEL = { google: 'Google search', other_search: 'Bing or another search engine', ai: 'ChatGPT or another AI assistant',
+  jobbank: 'Job Bank', facebook: 'Facebook', instagram: 'Instagram', linkedin: 'LinkedIn', whatsapp: 'WhatsApp',
+  consultant: 'An immigration consultant or recruiter', referral: 'A friend or colleague', other: 'Other' };
+export function acquisition(data) {
+  const since = new Date(TRACKING_SINCE + 'T00:00:00Z');
+  const ppl = data.people.filter((p) => p.kind === 'real' && new Date(p.created_at) >= since);
+  const tally = (key) => { const m = new Map(); for (const p of ppl) { const k = key(p); m.set(k, (m.get(k) || 0) + 1); } return [...m].sort((a, b) => b[1] - a[1]); };
+  return {
+    total: ppl.length,
+    heard: tally((p) => (p.heard_about ? (HEARD_LABEL[p.heard_about] || p.heard_about) : 'Did not say')),
+    source: tally((p) => p.source || 'Direct, bookmark or unknown'),
+    byPortal: data.portals.map((po) => ({ name: po.name, n: ppl.filter((p) => p.portal === po.name).length })),
+    others: ppl.filter((p) => p.heard_about === 'other' && p.heard_about_other).map((p) => ({ portal: p.portal, text: p.heard_about_other })),
+  };
+}
+
 // The rows of the portal comparison, in display order. Each: { key, label, format: 'money'|'num',
 // group: 'real'|'excluded', emphasis?: true, flag?: true (non-zero is a problem) }
 export const COMPARE_ROWS = [

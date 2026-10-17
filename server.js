@@ -71,7 +71,9 @@ const ADS_SQL = `
   ) s on true
   order by coalesce(j.published_at, j.created_at) desc`;
 
-const USERS_SQL = `select id, email, role, name, created_at, last_login_at, is_active from users order by created_at desc`;
+// Sign-up attribution columns (added 2026-10-17 on all portals; adsdash has column-level SELECT on them).
+const USERS_SQL = `select id, email, role, name, created_at, last_login_at, is_active,
+  heard_about, heard_about_other, signup_ref_host, signup_utm, signup_landing from users order by created_at desc`;
 const APPS_SQL = `select job_id, seeker_user_id, status, created_at from applications`;
 const PAYMENTS_SQL = `
   select job_id, payer_user_id, provider, total_cents, paid_at
@@ -109,6 +111,10 @@ async function loadPortal(p) {
       stripe_cents: myPays.filter(x => x.provider === 'stripe').reduce((s, x) => s + x.total_cents, 0),
       sandbox_cents: myPays.filter(x => x.provider === 'sandbox').reduce((s, x) => s + x.total_cents, 0),
       applications: apps.filter(x => x.seeker_user_id === u.id).length,
+      heard_about: u.heard_about || null, heard_about_other: u.heard_about_other || null,
+      // First-touch source: a campaign tag wins, else the external referring host, else unknown (direct / no cookie).
+      source: (u.signup_utm && u.signup_utm.source) ? `campaign: ${u.signup_utm.source}` : (u.signup_ref_host || null),
+      landing: u.signup_landing || null,
     };
   });
 

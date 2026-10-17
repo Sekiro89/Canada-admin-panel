@@ -424,3 +424,7 @@ th[aria-sort="ascending"] .icon--sort { transform: scaleY(-1); }
   .t--plans .acts { grid-column: 1 / -1; text-align: left; padding-top: var(--s2); }
   .t--plans .acts .btn { margin: 0 var(--s1) 0 0; }
 }
+
+/* how people found us */
+.kv__h { margin: var(--s4) 0 var(--s1); font-size: var(--t-s); font-weight: 600; color: var(--ink-2); }
+.kv__list { margin: 0; padding-left: 1.1em; font-size: var(--t-s); }
